@@ -18,7 +18,12 @@ function priorities(s){
     Number(concern(b))-Number(concern(a))||(a.score??101)-(b.score??101)||(b.gap??0)-(a.gap??0)||b.votes-a.votes);
 }
 function badge(p){
-  return `<span class="badge b-${p.category}">${esc(p.label)}</span>`;
+  // Preserve the underlying score category, but distinguish actual progress
+  // within the broad 40–59 range rather than showing identical badges.
+  const band=p.category==='forming'
+    ?p.score<47?'forming-early':p.score<54?'forming-mid':'forming-late'
+    :p.category;
+  return `<span class="badge b-${band}">${esc(p.label)}</span>`;
 }
 function why(p){
   if(p.score===null)return p.votes?'Учасники запропонували цей захід. Груповий бал з’явиться після досягнення порога.':'Для цього запитання ще триває збір групових відповідей.';
