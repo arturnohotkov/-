@@ -1,0 +1,53 @@
+name: Озвучене конкурсне відео «Воробці»
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - tools/build-competition-video.py
+permissions:
+  contents: write
+concurrency:
+  group: integrity-site-publication
+  cancel-in-progress: false
+jobs:
+  video:
+    if: "${{ github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'Publish voiced competition video' }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Установити програму монтажу й українські шрифти
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-dejavu-core
+          python -m pip install --quiet 'edge-tts>=7,<9' 'Pillow>=11,<13'
+      - name: Створити дев'ять сцен і український нейромережевий голос
+        run: python tools/build-competition-video.py
+        env:
+          VIDEO_VOICE: uk-UA-PolinaNeural
+      - name: Перевірити реальне відео та звукову доріжку
+        run: |
+          test -s rendered-video/vorobtsi-intro.mp4
+          test -s rendered-video/vorobtsi-intro-poster.jpg
+          ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 rendered-video/vorobtsi-intro.mp4 | grep -q aac
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 rendered-video/vorobtsi-intro.mp4 | grep -q h264
+          du -h rendered-video/vorobtsi-intro.mp4
+      - name: Опублікувати MP4 і постер на тій самій GitHub Pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin gh-pages
+          git worktree add -B gh-pages "$RUNNER_TEMP/gh-video-site" origin/gh-pages
+          cp rendered-video/vorobtsi-intro.mp4 "$RUNNER_TEMP/gh-video-site/vorobtsi-intro.mp4"
+          cp rendered-video/vorobtsi-intro-poster.jpg "$RUNNER_TEMP/gh-video-site/vorobtsi-intro-poster.jpg"
+          git -C "$RUNNER_TEMP/gh-video-site" config user.name 'github-actions[bot]'
+          git -C "$RUNNER_TEMP/gh-video-site" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C "$RUNNER_TEMP/gh-video-site" add -f vorobtsi-intro.mp4 vorobtsi-intro-poster.jpg
+          git -C "$RUNNER_TEMP/gh-video-site" commit -m "Publish human-voiced Ukrainian competition intro video"
+          git -C "$RUNNER_TEMP/gh-video-site" push origin HEAD:gh-pages
