@@ -88,3 +88,12 @@ test('Any visitor gets a separate demo, and can return after exploring an exampl
  assert.equal((await call('demo-return',{})).status,200);s=(await call('state')).data;assert.equal(s.measures.length,2);
  await call('start',{},'');s=(await call('state')).data;assert.equal(s.measures.length,1);
 });
+
+test('Manual preventative measure for a practice that is not automatically flagged',async()=>{
+ const {call}=fixture();await call('start',{});const state=(await call('state')).data;
+ const c=state.cycles.find(c=>c.closed),q=c.practices.find(q=>['strong','stable'].includes(q.category))||c.practices[0];
+ const payload={cycle:c.id,criterion:q.component,questionId:q.id,text:'Провести практичну зустріч із доброчесності.',owner:state.owners[0],due:'2027-03-15'};
+ assert.equal((await call('measure',payload)).status,200);
+ assert.ok((await call('state')).data.measures.some(m=>m.questionId===q.id&&m.text===payload.text));
+ assert.equal((await call('measure',payload)).status,409);
+});
