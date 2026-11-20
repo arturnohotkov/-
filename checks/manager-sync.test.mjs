@@ -133,28 +133,26 @@ test('Published manager page includes one-click sync and no demo modifications',
   assert.equal(typeof synchronizeManagerPlans,'function');
 });
 
-test('Real manager clearly distinguishes browser-only actions from server-synced actions',async()=>{
+test('Manager plan hides the alarming synchronization banner and preserves local measures',async()=>{
   const {renderSection}=await import('../public/manager.mjs');
   const browser=storage();
   save(browser);
   const remote=service();
-  const pre={...mergeLocalPlans(await remote.api('state'),browser,key),serverManualMeasures:false};
-  const pending=renderSection(pre,{criteria:['Культура']},'plan');
-  assert.match(pending,/Очікують на синхронізацію: 1/);
-  assert.match(pending,/Перевірити можливість синхронізації/);
-  assert.match(pending,/data-action="sync-plans"/);
-  assert.doesNotMatch(pending,/Спільний план доступний з різних пристроїв/);
+  const pending=renderSection({...mergeLocalPlans(await remote.api('state'),browser,key),serverManualMeasures:false},{criteria:['Культура']},'plan');
+  assert.doesNotMatch(pending,/Очікують на синхронізацію|Поточна версія спільного сервера|Перевірити можливість синхронізації/);
+  assert.doesNotMatch(pending,/data-action="sync-plans"/);
+  assert.match(pending,/Збережено на цьому пристрої/);
+  assert.match(pending,/Організувати навчання з перевіркою засвоєння/);
   await sync(browser,remote);
-  const post={...mergeLocalPlans(await remote.api('state'),browser,key),serverManualMeasures:true};
-  const ready=renderSection(post,{criteria:['Культура']},'plan');
-  assert.match(ready,/Заходи зберігаються на спільному сервері/);
-  assert.doesNotMatch(ready,/Очікують на синхронізацію/);
+  const ready=renderSection({...mergeLocalPlans(await remote.api('state'),browser,key),serverManualMeasures:true},{criteria:['Культура']},'plan');
+  assert.doesNotMatch(ready,/Очікують на синхронізацію|Заходи зберігаються на спільному сервері/);
+  assert.match(ready,/Організувати навчання з перевіркою засвоєння/);
 });
 
 test('Real manager UI wires automatic migration after login and periodic capability checks',()=>{
   const client=readFileSync(new URL('../public/live.js',import.meta.url),'utf8');
   assert.match(client,/synchronizePlans\(false\)/);
-  assert.match(client,/if\(action==='sync-plans'\)/);
+  assert.doesNotMatch(client,/if\(action==='sync-plans'\)/);
   assert.match(client,/lastSyncCheck>60000/);
   assert.match(client,/synchronizeManagerPlans\(\{api,storage:localStorage,key:planKey,initialState:rawManagerState\}\)/);
   const demo=readFileSync(new URL('../offline/build-html.mjs',import.meta.url),'utf8');
