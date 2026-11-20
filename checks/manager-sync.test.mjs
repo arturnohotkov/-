@@ -121,10 +121,10 @@ test('Status failure after server create preserves the draft for a later retry',
   assert.equal(first.remaining,1);
   assert.equal(remote.plans[q.id].status,'planned');
   assert.equal(first.failed.length,1);
-  remote.api = service({plans:remote.plans}).api;
-  const second=await sync(browser,remote);
+  const resumed=service({plans:remote.plans});
+  const second=await sync(browser,resumed);
   assert.equal(second.remaining,0);
-  assert.equal(remote.plans[q.id].status,'done');
+  assert.equal(resumed.plans[q.id].status,'done');
 });
 
 test('Published manager page includes one-click sync and no demo modifications',()=>{
