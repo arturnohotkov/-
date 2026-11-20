@@ -14,6 +14,9 @@ import sys
 import time
 
 from PIL import Image, ImageDraw, ImageFont
+from io import BytesIO
+from functools import lru_cache
+import xml.etree.ElementTree as ET
 
 SCENES = [
   {
@@ -133,6 +136,21 @@ def draw_metric(d,x,y,value,name):
     label(d,(x+21,y+13),value,47,(30,90,56),True)
     label(d,(x+21,y+78),name,13,(69,96,75),True)
 
+@lru_cache(maxsize=3)
+def site_mark(pixels=48, transparent=False):
+    """Rasterize the exact public/mark.svg — the dark Latin V, not Cyrillic В."""
+    from cairosvg import svg2png
+    svg_file=ROOT/"public"/"mark.svg"
+    if not svg_file.is_file():raise RuntimeError("Official mark.svg missing")
+    svg=ET.parse(svg_file)
+    if transparent:
+        for child in list(svg.getroot()):
+            if child.tag.endswith("rect"):
+                svg.getroot().remove(child)
+    payload=ET.tostring(svg.getroot(),encoding="utf-8")
+    image=svg2png(bytestring=payload,output_width=pixels,output_height=pixels)
+    return Image.open(BytesIO(image)).convert("RGBA")
+
 def draw_visual(d,kind):
     accent=(193,244,128)
     white=(239,247,231)
@@ -247,7 +265,7 @@ def draw_visual(d,kind):
         card(d,(731,145,1189,567),(18,53,39),(93,151,99),26)
         d.ellipse((806,179,1115,488),outline=(101,180,98),width=5)
         d.ellipse((841,213,1081,453),fill=(183,240,124))
-        label(d,(915,245),"В",124,(25,73,46),True)
+        # The V is pasted from the official SVG after the vector art is drawn.
         label(d,(802,500),"КОМАНДА «ВОРОБЦІ»",18,accent,True)
     return
 
@@ -269,8 +287,9 @@ def render_slide(s,number):
     d.ellipse((1010-number*9,34,1312-number*9,337),outline=(52,107,67),width=2)
     d.ellipse((1085-number*6,106,1250-number*6,271),outline=(56,122,69),width=2)
     # Masthead / brand treatment.
-    rr(d,(64,45,111,93),12,(192,242,124))
-    label(d,(78,48),"В",30,(17,53,35),True)
+    # Use the exact public site icon; preserves the lime tile and stylized Latin V.
+    emblem=site_mark(48)
+    im.paste(emblem,(64,45),emblem)
     label(d,(127,48),"ВОРОБЦІ",26,(248,250,234),True)
     label(d,(127,81),"ВЕКТОР ДОБРОЧЕСНОСТІ",12,(164,203,164),True)
     rr(d,(1054,52,1201,89),19,(39,78,52))
@@ -294,6 +313,9 @@ def render_slide(s,number):
     if line:label(d,(82,sy),line,18,(187,219,193))
     # Follow original deck with expressive, *different* analytics visuals.
     draw_visual(d,number)
+    if number==len(SCENES)-1:
+        large_v=site_mark(176,transparent=True)
+        im.paste(large_v,(873,246),large_v)
     d.line((79,616,1198,616),fill=(57,98,68),width=2)
     for j in range(len(SCENES)):
         rr(d,(81+j*23,646,93+j*23,656),5,(187,235,126) if j==number else (63,109,71))
