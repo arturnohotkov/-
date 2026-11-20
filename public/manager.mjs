@@ -1,4 +1,4 @@
-import {contextualizeDashboard} from './manager-advice.mjs';
+import {contextualizeDashboard} from './manager-advice.mjs?v=20';
 export const sections = {
   overview:'Огляд', priorities:'Пріоритети', questions:'Запитання',
   history:'Динаміка', plan:'План заходів', report:'Звіт'
