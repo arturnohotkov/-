@@ -111,7 +111,7 @@ def font(size,bold=False):
 def rr(draw, rect, r, fill, outline=None, width=1):
     draw.rounded_rectangle(rect, radius=r,fill=fill,outline=outline,width=width)
 
-# The previous presentation used rich glass cards, lime accents and distinct
+# The earlier interactive presentation used rich glass cards, lime accents and distinct
 # scenes. Bring those elements into the real narrated MP4 instead of repeating
 # a single static information card across all nine sections.
 def label(d, xy, text, size, color=(242,249,235), bold=False, spacing=None):
