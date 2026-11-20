@@ -85,6 +85,9 @@ test('The production build ships new independent manager advice without rewritin
  assert.match(build,/'manager-advice\.mjs'/);
  const manager=readFileSync(new URL('../public/manager.mjs',import.meta.url),'utf8');
  assert.match(manager,/from '\.\/manager-advice\.mjs'/);
+ const live=readFileSync(new URL('../public/live.js',import.meta.url),'utf8');
+ assert.match(live,/choosePracticeGuidance\(available\.find/);
+ assert.match(live,/choosePracticeGuidance\(lastState\.practices\.find/);
  const demo=readFileSync(new URL('../offline/build-html.mjs',import.meta.url),'utf8');
  assert.doesNotMatch(demo,/manager-advice\.mjs/);
 });
