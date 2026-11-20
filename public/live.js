@@ -144,6 +144,8 @@ root.addEventListener('click',async e=>{
     select.value=available.some(q=>q.id===button.dataset.plan)?button.dataset.plan:available[0].id;
     const item=available.find(q=>q.id===select.value);
     form.elements.action.value=item.action;form.elements.verify.value=item.verify;
+    const due=new Date();due.setDate(due.getDate()+30);form.elements.due.value=[due.getFullYear(),String(due.getMonth()+1).padStart(2,'0'),String(due.getDate()).padStart(2,'0')].join('-');
+    if(!info.manualMeasures){const note=form.querySelector('.planError');note.textContent='У спільному сервері ще діє попередня логіка: дозволені лише автоматично визначені рекомендації. Для довільних заходів відкрийте демонстраційну панель.';note.setAttribute('role','status')}
     root.querySelector('dialog').showModal();
   }
 });
@@ -160,8 +162,23 @@ root.addEventListener('submit',async e=>{
       receipt(!!result.existing);answers=[];
     }
     if(form.id==='login'){await api('login',{key:fields.get('key')});form.reset();manager();await refresh()}
-    if(form.id==='plan'){await api('plan',Object.fromEntries(fields));root.querySelector('dialog').close();await refresh()}
-  }catch(err){if(form.id==='plan')form.querySelector('.planError').textContent=err.message;else errorText(err)}
+    if(form.id==='plan'){
+      const payload=Object.fromEntries(fields);
+      if(!info.manualMeasures){
+        const practice=lastState?.practices.find(p=>p.id===payload.id);
+        const eligible=practice&&(practice.votes>0||['priority','forming','split'].includes(practice.category)||lastState.weakest?.id===practice.id);
+        if(!eligible)throw Object.assign(new Error('Спільний сервер ще не оновлено для довільних заходів. Відкрийте «Демоприклад» і додайте захід у «Плані заходів».'),{status:409});
+      }
+      const response=await api('plan',payload);
+      const latest=await api('state');
+      lastState=latest;lastDashboard=JSON.stringify(latest);results(latest);
+      const saved=latest.proposals.some(p=>p.id===payload.id&&p.plan);
+      if(!saved)throw new Error('Сервер не підтвердив збереження. Спробуйте ще раз.');
+      root.querySelector('dialog').close();
+      const notice=root.querySelector('#notice');if(notice)notice.textContent=response.existing?'Цей захід уже був у плані.':'Захід збережено в плані ✓';
+      location.hash='plan';
+    }
+  }catch(err){if(form.id==='plan'){const error=form.querySelector('.planError');error.textContent=err.message+(err.status===400&&!info.manualMeasures?' Сервер потребує оновлення; перевірте демонстраційну панель.':'');error.setAttribute('role','alert')}else errorText(err)}
   finally{sending=false;if(button)button.disabled=false}
 });
 root.addEventListener('change',async e=>{
