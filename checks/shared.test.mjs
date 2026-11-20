@@ -180,3 +180,27 @@ test('Voluntary wording is selected by the participant and available immediately
   assert.deepEqual(item.offered,[{mode:'mid',action:q.tips[2],votes:1}]);
   assert.equal(item.action,q.tips[2]);assert.equal(state.total,1);
 });
+
+test('Manually created management action is persisted with custom wording',async()=>{
+  const {client}=instance();
+  const manager=client('https://example.github.io');
+  assert.equal((await manager('login',{key:'test-manager-key'})).status,200);
+  const info=(await manager('info')).body;
+  assert.equal(info.manualMeasures,true);
+  const state=(await manager('state')).body;
+  const practice=state.practices.find(p=>p.category==='hidden'&&!p.votes)??state.practices[0];
+  const payload={
+    id:practice.id,owner:'Навчальний відділ',due:'2027-03-01',
+    action:'Провести позаплановий тренінг із доброчесності та задокументувати результати.',
+    verify:'Протокол тренінгу та підтверджене ознайомлення учасників.'
+  };
+  const response=await manager('plan',payload);
+  assert.equal(response.status,200,JSON.stringify(response.body));
+  const saved=(await manager('state')).body.proposals.find(p=>p.id===practice.id)?.plan;
+  assert.ok(saved,'New management action is visible in plan');
+  assert.equal(saved.action,payload.action);
+  assert.equal(saved.verify,payload.verify);
+  assert.equal(saved.owner,payload.owner);
+  assert.equal(saved.due,payload.due);
+  assert.equal((await manager('plan',payload)).body.existing,true);
+});
