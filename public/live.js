@@ -152,6 +152,17 @@ root.addEventListener('click',async e=>{
     root.querySelector('dialog').showModal();
   }
 });
+// Показуємо причину блокування відправлення, якщо браузер виявив незаповнене поле.
+root.addEventListener('invalid',e=>{
+  const control=e.target;
+  if(!control.closest?.('form#plan'))return;
+  const msg=root.querySelector('#plan .planError');
+  if(msg){
+    const label=control.closest('label')?.childNodes[0]?.textContent?.trim()||'потрібне поле';
+    msg.textContent='Перевірте поле «'+label+'»: заповніть його коректно, щоб зберегти захід.';
+    msg.setAttribute('role','alert');
+  }
+},true);
 root.addEventListener('submit',async e=>{
   e.preventDefault();if(sending)return;
   const form=e.target,fields=new FormData(form),button=e.submitter;
