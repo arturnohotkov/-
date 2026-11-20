@@ -108,7 +108,7 @@ export async function handle(req,db,config={mode:'demo'}){
   }else if(name==='measure'){
    can('lead');const c=s.cycles.find(x=>x.id===b.cycle&&x.closed),r=c&&report(c).rows[b.criterion];
    const practice=b.questionId&&c?report(c).practices.find(q=>q.id===b.questionId&&q.component===b.criterion):null;
-   if(b.questionId?!practice||!['forming','priority','split'].includes(practice.category):!r?.flag)fail('Для цього показника немає рекомендації.');
+   if(b.questionId?!practice:!r)fail('Оберіть практику або показник для заходу.');
    if(s.actions.some(a=>a.cycle===c.id&&a.criterion===b.criterion&&(a.questionId??null)===(b.questionId??null)))fail('Захід уже прийнято.',409);
    if(!validText(b.text,320)||!OWNERS.includes(b.owner)||!/^\d{4}-\d{2}-\d{2}$/.test(b.due)||!Number.isFinite(Date.parse(b.due))||new Date(b.due).toISOString().slice(0,10)!==b.due)fail('Заповніть захід, відповідального та строк.');
    s.actions.push({id:key(),cycle:c.id,criterion:b.criterion,questionId:practice?.id,afterCycle:s.cycles.filter(x=>x.closed).at(-1).id,baseline:practice?.score??r.score,text:b.text.trim(),owner:b.owner,due:b.due,status:'Заплановано'});audit(s,role,'Прийнято захід · '+(practice?.title??r.title));
