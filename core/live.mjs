@@ -113,7 +113,7 @@ function record(s,group,answers,proposal,fingerprint,variant){
 function dashboard(s){
   const items=practices(s);
   const stats=figures(s,items);
-  const proposals=QUESTIONS.filter(q=>s.votes[q.id]||s.plans[q.id]).map(q=>({
+  const proposals=QUESTIONS.map(q=>({
     id:q.id,title:q.title,action:q.action,votes:s.votes[q.id]||0,plan:s.plans[q.id]?{action:q.action,verify:legacyGuidance[q.id]?.verify,...s.plans[q.id]}:null
   })).sort((a,b)=>b.votes-a.votes);
   return {total:s.total,minimum:MINIMUM,...stats,practices:items,proposals,history:s.history};
@@ -172,12 +172,14 @@ export async function handleLive(req,db,managerHash){
         }));
       }
       if(!q||!['Уповноважений з доброчесності','Навчальний відділ','Робоча група'].includes(body.owner)||
+        (body.action!=null&&(typeof body.action!=='string'||body.action.trim().length<2||body.action.trim().length>320))||
+        (body.verify!=null&&(typeof body.verify!=='string'||body.verify.trim().length<2||body.verify.trim().length>320))||
         !/^\d{4}-\d{2}-\d{2}$/.test(body.due)||!Number.isFinite(Date.parse(body.due))||new Date(body.due).toISOString().slice(0,10)!==body.due)problem('Оберіть відповідального й дійсну дату.',400);
       return reply(await change(db,s=>{
         if(s.plans[q.id])return {existing:true,ok:true};
         const item=practices(s).find(practice=>practice.id===q.id);
-        if(!item.votes&&!['priority','forming','split'].includes(item.category)&&figures(s).weakest?.id!==q.id)problem('Для практики ще немає підстави додати захід.',400);
-        s.plans[q.id]={owner:body.owner,due:body.due,status:'planned',action:item.action,verify:item.verify,cohortVersion:2,baseline:item.score,evidenceCount:Object.values(item.published).reduce((n,v)=>n+(v||0),0)};return {ok:true};
+        // Дозволяємо керівникові створювати превентивні заходи без автоматичного попередження.
+        s.plans[q.id]={owner:body.owner,due:body.due,status:'planned',action:body.action?.trim()||item.action,verify:body.verify?.trim()||item.verify,cohortVersion:2,baseline:item.score,evidenceCount:Object.values(item.published).reduce((n,v)=>n+(v||0),0)};return {ok:true};
       }));
     }
     if(!['live-start','live-answer'].includes(route))problem('Сторінку не знайдено.',404);
