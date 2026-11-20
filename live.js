@@ -1,6 +1,7 @@
 import {sections,renderSection,managerCsv} from './manager.mjs?v=10';
 import {saveLocalPlan,mergeLocalPlans,changeLocalStatus} from './manager-store.mjs?v=1';
 import {optionsFor} from './survey-wording.mjs?v=1';
+import {proposalCandidates,proposalVariant,variantLabels,improvement,surveySummary} from './survey-advice.mjs?v=1';
 const root=document.querySelector('#room');
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const url=new URL(location.href);
@@ -12,7 +13,7 @@ const ballotKey='vektor-ballot:'+base+':'+backend;
 const planKey='vektor-manager-actions-v1:'+base+':'+backend;
 if(backend){try{ballotToken=localStorage.getItem(ballotKey)||''}catch{}}
 const route=url.pathname.slice(base.length).replace(/\/index\.html$/,'').replace(/\/$/,'');
-let info,step=0,reviewBack=0,selectedProposal='',variant='original',answers=[],group='',sending=false,shared=false,lastDashboard='',lastState=null,rawManagerState=null,refreshing=false,started=false;
+let info,step=0,reviewBack=0,selectedProposal='',variant='auto',answers=[],group='',sending=false,shared=false,lastDashboard='',lastState=null,rawManagerState=null,refreshing=false,started=false;
 async function api(name,body){
   const options=body===undefined?{cache:'no-store'}:{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)};
   if(backend){
@@ -47,8 +48,8 @@ function question(){
   root.querySelector('legend').focus({preventScroll:true});
 }
 function candidates(){
-  return info.questions.map((q,i)=>({q,score:answers[i]})).filter(row=>Number.isInteger(row.score)&&row.score<3)
-    .sort((a,b)=>a.score-b.score||Number(!!b.q.optional)-Number(!!a.q.optional));
+  // Не приховуємо пропозиції після позитивного оцінювання (3–4 бали).
+  return proposalCandidates(info.questions,answers);
 }
 function suggested(){
   const list=candidates();
@@ -59,19 +60,34 @@ function choices(q){
 }
 function personalDetails(){
   return info.criteria.map((title,component)=>{
-    const relevant=info.questions.map((item,i)=>({item,score:answers[i]})).filter(x=>x.item.component===component&&Number.isInteger(x.score)&&x.score<5);
-    relevant.sort((a,b)=>a.score-b.score);
-    const lowest=relevant[0];
-    return `<article><h3>${safe(title)}</h3><p>${lowest?`${safe(lowest.item.title)} · ${safe(optionsFor(lowest.item,group)[lowest.score])}.`:'Ви пропустили оцінку всіх практик цієї складової.'}</p>${lowest?`<p><b>Що допоможе.</b> ${safe(lowest.item.tips[lowest.score])}</p>`:''}</article>`;
+    const relevant=info.questions.map((item,i)=>({item,score:answers[i]}))
+      .filter(({item,score})=>item.component===component&&Number.isInteger(score))
+      .sort((a,b)=>(a.score===5?10:a.score)-(b.score===5?10:b.score));
+    if(!relevant.length)return `<article class="selfComponent"><h3>${safe(title)}</h3><p>Для цієї складової поки немає оцінок.</p></article>`;
+    return `<article class="selfComponent"><h3>${safe(title)}</h3><p class="hint">Рекомендації сформовано для кожної відповіді окремо.</p>${relevant.map(({item,score})=>{
+      const advice=improvement(item,score);
+      const selected=score===5?'Не можу оцінити / бракує інформації':optionsFor(item,group)[score];
+      return `<div class="selfPractice ${advice.level}"><h4>${safe(item.title)}</h4><p class="selectedAnswer"><b>Ваша відповідь.</b> ${safe(selected)}</p><p><b>${safe(advice.heading)}.</b> ${safe(advice.assessment)} ${safe(advice.action)}</p></div>`;
+    }).join('')}</article>`;
   }).join('');
 }
 function review(){
-  const options=candidates(),q=suggested(),valid=answers.filter(n=>n<5).length;
+  const options=candidates(),q=suggested();
+  const selected=options.find(row=>row.q.id===q?.id);
+  const selectedMode=variant==='auto'?proposalVariant(selected?.score):variant;
+  const offered=q?choices(q):null;
   const details=personalDetails();
-  root.innerHTML=`<section class="card narrow"><span class="overline">Перед надсиланням</span><h1>Підсумок анкети</h1><p>${q?'За відповідями можна запропонувати таке поліпшення.':valid?'У практиках, які ви змогли оцінити, ви відзначили високий рівень.':'Ви обрали «Не можу оцінити» для всіх запитань. Анкету буде враховано в лічильнику участі.'}</p>${q?`<div class="insight">${options.length>1?`<label>Яку практику хочете поліпшити?<select id="proposal-choice">${options.map(({q:item})=>`<option value="${safe(item.id)}" ${q.id===item.id?'selected':''}>${safe(item.title)}</option>`).join('')}</select></label>`:`<h2>${safe(q.title)}</h2>`}<label class="proposalChoice">Яку дію запропонувати керівникові?<select id="proposal-variant">${Object.entries(choices(q)).map(([id,action])=>`<option value="${id}" ${id===variant?'selected':''}>${safe(action)}</option>`).join('')}</select></label><p>${safe(choices(q)[variant])}</p></div>`:''}<details class="personal"><summary>Мій результат за трьома складовими</summary>${details}</details><form id="send">${q?`<label class="optin"><input type="checkbox" name="share" ${shared?'checked':''}>Передати керівникові цю пропозицію без мого імені</label><p class="hint">У кабінеті з’являться текст пропозиції й кількість учасників, які її підтримали. Ваші окремі відповіді та бали залишаються прихованими.</p>`:''}<div class="tools"><button type="button" class="btn" data-action="back">Назад</button><button class="btn dark">Надіслати анкету</button></div><p id="notice" role="alert"></p></form></section>`;
+  root.innerHTML=`<section class="card narrow"><span class="overline">Перед надсиланням</span><h1>Підсумок анкети</h1><p class="reviewSummary">${safe(surveySummary(info.questions,answers))}</p>
+    ${q?`<div class="insight"><h2>Ваша пропозиція для керівника</h2><p>Пропозицію можна подати за будь-якої оцінки: якщо є проблема — запропонувати рішення, якщо все добре — подальше вдосконалення.</p>
+    <label>Яку практику бажаєте покращити?<select id="proposal-choice">${options.map(({q:item,score})=>`<option value="${safe(item.id)}" ${q.id===item.id?'selected':''}>${safe(item.title)} · ${Number.isInteger(score)&&score<=4?'оцінка '+(score+1)+'/5':'потрібне уточнення'}</option>`).join('')}</select></label>
+    <label class="proposalChoice">Яку конкретну дію запропонувати?<select id="proposal-variant">${Object.entries(offered).map(([id,action])=>`<option value="${id}" ${id===selectedMode?'selected':''}>${safe(variantLabels[id])}: ${safe(action)}</option>`).join('')}</select></label>
+    <p class="chosenProposal"><b>Пропонується:</b> ${safe(offered[selectedMode]||q.action)}</p></div>`:''}
+    <details class="personal"><summary>Що допоможе: рекомендації за всіма відповідями</summary>${details}</details>
+    <form id="send">${q?`<label class="optin optinImportant"><input type="checkbox" name="share" ${shared?'checked':''}><span><b>Так, передати цю пропозицію керівникові</b><small>Без імені, індивідуальних балів та персональних відомостей</small></span></label><p class="hint">Важливо: пропозиція надійде керівникові, лише якщо поставити позначку вище. Без неї буде передано тільки анкету.</p>`:''}
+    <div class="tools"><button type="button" class="btn" data-action="back">Назад</button><button class="btn dark">Надіслати анкету ${shared?'разом із пропозицією':''}</button></div><p id="notice" role="alert"></p></form></section>`;
 }
 function receipt(repeat=false){
-  root.innerHTML=`<section class="card narrow receipt"><span class="tick" aria-hidden="true">✓</span><h1>${repeat?'Анкету вже враховано':'Анкету враховано'}</h1><p>${repeat?'З цього браузера вже надіслано анкету до спільного збору.':'Лічильник у кабінеті керівника оновлено.'} ${!repeat&&shared?'Вашу пропозицію також передано керівникові.':''}</p>${!repeat&&answers.length?'<details class="personal"><summary>Мій результат за трьома складовими</summary>'+personalDetails()+'</details>':''}<a class="btn" href="${link('/')}">На головну</a></section>`;
+  root.innerHTML=`<section class="card narrow receipt"><span class="tick" aria-hidden="true">✓</span><h1>${repeat?'Анкету вже враховано':'Анкету враховано'}</h1><p>${repeat?'З цього браузера вже надіслано анкету до спільного збору.':'Лічильник у кабінеті керівника оновлено.'} ${!repeat&&shared?'Вашу пропозицію також передано керівникові.':''}</p>${!repeat&&answers.length?'<details class="personal"><summary>Що допоможе: рекомендації за всіма відповідями</summary>'+personalDetails()+'</details>':''}<a class="btn" href="${link('/')}">На головну</a></section>`;
 }
 function login(){
   started=false;lastDashboard='';lastState=null;
@@ -120,7 +136,7 @@ root.addEventListener('click',async e=>{
     shared=false;question();
   }
   if(action==='skip'&&!sending&&info.questions[step]?.optional){
-    reviewBack=step;answers.fill(5,step);selectedProposal='';variant='original';shared=false;step=info.questions.length;review();
+    reviewBack=step;answers.fill(5,step);selectedProposal='';variant='auto';shared=false;step=info.questions.length;review();
   }
   if(action==='cancel')root.querySelector('dialog')?.close();
   if(action==='logout'){try{await api('logout',{});login()}catch(err){errorText(err)}}
@@ -169,11 +185,13 @@ root.addEventListener('submit',async e=>{
   const form=e.target,fields=new FormData(form),button=e.submitter;
   sending=true;if(button)button.disabled=true;
   try{
-    if(form.getAttribute('id')==='start'){group=fields.get('group');const r=await api('start',{});if(r.submitted)receipt(true);else{step=0;answers=Array(info.questions.length).fill(null);shared=false;selectedProposal='';variant='original';question()}}
-    if(form.getAttribute('id')==='question'){answers[step]=Number(fields.get('choice'));reviewBack=step;step++;shared=false;selectedProposal='';variant='original';if(step===info.questions.length)review();else question()}
+    if(form.getAttribute('id')==='start'){group=fields.get('group');const r=await api('start',{});if(r.submitted)receipt(true);else{step=0;answers=Array(info.questions.length).fill(null);shared=false;selectedProposal='';variant='auto';question()}}
+    if(form.getAttribute('id')==='question'){answers[step]=Number(fields.get('choice'));reviewBack=step;step++;shared=false;selectedProposal='';variant='auto';if(step===info.questions.length)review();else question()}
     if(form.getAttribute('id')==='send'){
       shared=fields.has('share');const q=suggested();
-      const result=await api('answer',{answers:answers.map(v=>v===5?null:v),group,proposal:shared&&q?q.id:null,variant:shared&&q?variant:null});
+      const selected=candidates().find(row=>row.q.id===q?.id);
+      const submittedVariant=variant==='auto'?proposalVariant(selected?.score):variant;
+      const result=await api('answer',{answers:answers.map(v=>v===5?null:v),group,proposal:shared&&q?q.id:null,variant:shared&&q?submittedVariant:null});
       receipt(!!result.existing);answers=[];
     }
     if(form.getAttribute('id')==='login'){await api('login',{key:fields.get('key')});form.reset();manager();await refresh()}
@@ -204,8 +222,13 @@ root.addEventListener('submit',async e=>{
 root.addEventListener('change',async e=>{
   const el=e.target;
   if(el.id==='plan-practice'&&lastState){const item=lastState.practices.find(q=>q.id===el.value),form=root.querySelector('#plan');if(item){form.elements.action.value=item.action;form.elements.verify.value=item.verify}}
+  if(el.name==='share'&&el.closest('#send')){
+    shared=el.checked;
+    const button=root.querySelector('#send button:not([type=button])');
+    if(button)button.textContent=shared?'Надіслати анкету разом із пропозицією':'Надіслати анкету';
+  }
   if(el.name==='choice')answers[step]=Number(el.value);
-  if(el.id==='proposal-choice'){selectedProposal=el.value;variant='original';shared=false;review();root.querySelector('#proposal-choice')?.focus()}
+  if(el.id==='proposal-choice'){selectedProposal=el.value;variant='auto';shared=false;review();root.querySelector('#proposal-choice')?.focus()}
   if(el.id==='proposal-variant'){variant=el.value;shared=false;review();root.querySelector('#proposal-variant')?.focus()}
   if(el.id==='practice-filter'&&lastState){practiceFilter=el.value;results(lastState);root.querySelector('#practice-filter')?.focus()}
   if(el.dataset.status){
