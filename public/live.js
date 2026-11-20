@@ -87,7 +87,7 @@ function review(){
     <div class="tools"><button type="button" class="btn" data-action="back">Назад</button><button class="btn dark">Надіслати анкету ${shared?'разом із пропозицією':''}</button></div><p id="notice" role="alert"></p></form></section>`;
 }
 function receipt(repeat=false){
-  root.innerHTML=`<section class="card narrow receipt"><span class="tick" aria-hidden="true">✓</span><h1>${repeat?'Анкету вже враховано':'Анкету враховано'}</h1><p>${repeat?'З цього браузера вже надіслано анкету до спільного збору.':'Лічильник у кабінеті керівника оновлено.'} ${!repeat&&shared?'Вашу пропозицію також передано керівникові.':''}</p>${!repeat&&answers.length?'<details class="personal"><summary>Мій результат за трьома складовими</summary>'+personalDetails()+'</details>':''}<a class="btn" href="${link('/')}">На головну</a></section>`;
+  root.innerHTML=`<section class="card narrow receipt"><span class="tick" aria-hidden="true">✓</span><h1>${repeat?'Анкету вже враховано':'Анкету враховано'}</h1><p>${repeat?'З цього браузера вже надіслано анкету до спільного збору.':'Лічильник у кабінеті керівника оновлено.'} ${!repeat&&shared?'Вашу пропозицію також передано керівникові.':''}</p>${!repeat&&answers.length?'<details class="personal"><summary>Що допоможе: рекомендації за всіма відповідями</summary>'+personalDetails()+'</details>':''}<a class="btn" href="${link('/')}">На головну</a></section>`;
 }
 function login(){
   started=false;lastDashboard='';lastState=null;
@@ -222,6 +222,11 @@ root.addEventListener('submit',async e=>{
 root.addEventListener('change',async e=>{
   const el=e.target;
   if(el.id==='plan-practice'&&lastState){const item=lastState.practices.find(q=>q.id===el.value),form=root.querySelector('#plan');if(item){form.elements.action.value=item.action;form.elements.verify.value=item.verify}}
+  if(el.name==='share'&&el.closest('#send')){
+    shared=el.checked;
+    const button=root.querySelector('#send button:not([type=button])');
+    if(button)button.textContent=shared?'Надіслати анкету разом із пропозицією':'Надіслати анкету';
+  }
   if(el.name==='choice')answers[step]=Number(el.value);
   if(el.id==='proposal-choice'){selectedProposal=el.value;variant='auto';shared=false;review();root.querySelector('#proposal-choice')?.focus()}
   if(el.id==='proposal-variant'){variant=el.value;shared=false;review();root.querySelector('#proposal-variant')?.focus()}
