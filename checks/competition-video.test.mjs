@@ -42,3 +42,35 @@ test('GitHub builds and publishes a real MP4 with an audio stream in the SAME re
  const demo=readFileSync(new URL('../offline/build-html.mjs',import.meta.url),'utf8');
  assert.doesNotMatch(demo,/vorobtsi-intro/);
 });
+
+test('New MP4 has nine visually distinct original-deck-style scene mockups instead of repeated generic cards',()=>{
+ assert.match(script,/def draw_visual\(d,kind\):/);
+ for(let i=1;i<=7;i++)assert.match(script,new RegExp('elif kind=='+i+':'));
+ assert.match(script,/draw_visual\(d,number\)/);
+ assert.match(script,/Premium editorial slide system inspired by the original animated web deck/);
+ assert.match(script,/ДИНАМІКА/);
+ assert.match(script,/Часткове впровадження/);
+});
+
+test('Ukrainian narration marks dictionary stresses, corrects names and avoids unnatural English reading',()=>{
+ assert.match(workflow,/ukrainian-word-stress/);
+ assert.match(workflow,/marisa-trie/);
+ assert.match(script,/from ukrainian_word_stress import Stressifier, StressSymbol, Disambiguation/);
+ assert.match(script,/Disambiguation\.Dictionary/);
+ assert.match(script,/"воробці":"воробці́"/u);
+ assert.match(script,/"доброчесність":"доброче́сність"/u);
+ assert.match(script,/"заходи":"за́ходи"/u);
+ assert.match(script,/raw\.replace\("Integrity Management Dashboard","панель управління доброчесністю"\)/);
+ assert.match(script,/pitch="\+0Hz"/);
+});
+
+test('All public MP4 players use refreshed video assets and offer closed captions',()=>{
+ assert.match(workflow,/vorobtsi-intro\.uk\.vtt/);
+ assert.match(script,/def write_captions/);
+ const survey=ui.slice(ui.indexOf('function surveyIntro(){'),ui.indexOf('function question(){'));
+ assert.match(survey,/vorobtsi-intro\.mp4\?v=2/);
+ assert.match(survey,/vorobtsi-intro\.uk\.vtt\?v=2/);
+ assert.match(page,/vorobtsi-intro\.mp4\?v=2/);
+ assert.match(page,/vorobtsi-intro\.uk\.vtt\?v=2/);
+ assert.match(page,/kind="captions"/);
+});
