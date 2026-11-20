@@ -54,3 +54,20 @@ caption,.trend figcaption{text-align:left;font-weight:700;padding:10px 0}.trend{
 .selfPractice p{margin-top:9px;line-height:1.6}
 .selfPractice .selectedAnswer{font-size:.92rem;color:#496253}
 @media(max-width:620px){.selfPractice{padding:12px}.selfComponent{padding:15px 0}.optinImportant{padding:12px}}
+
+
+/* Public competition introduction: same MP4 on the homepage and before every survey. */
+.welcomeVideo{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);align-items:center;gap:clamp(22px,4vw,50px);padding:clamp(24px,4vw,48px);margin-bottom:20px;border-radius:24px;background:linear-gradient(124deg,#113a2e,#10281f 68%,#224a34);border:1px solid #517864;box-shadow:0 24px 60px #17382922}
+.welcomeVideo .overline,.surveyVideo .overline{color:#caec8f}
+.welcomeCopy h2{font-size:clamp(1.7rem,3vw,2.8rem);line-height:1.12;letter-spacing:-.05em;color:#f4fbea}
+.welcomeCopy p{color:#c8dccb;margin-top:16px;max-width:47ch}
+.welcomeVideo .tools{gap:9px;margin-top:25px}
+.welcomeVideo .tools .btn:not(.lime){background:transparent;color:#e7f1e6;border-color:#688a72}
+.welcomeVideo video,.surveyVideo video{display:block;width:100%;aspect-ratio:16/9;background:#091e16;border-radius:16px;box-shadow:0 12px 34px #04180f6b;object-fit:contain}
+.surveyVideo{display:grid;gap:14px;margin-top:22px;padding:20px;border-radius:16px;background:linear-gradient(130deg,#1a4936,#133427);border:1px solid #4a8565}
+.surveyVideo h2{font-size:1.35rem;color:#f2f7e6;letter-spacing:-.025em}
+.surveyVideo p{margin-top:6px;font-size:.9rem;color:#d6e3d6}
+.surveyVideo .overline{margin:0 0 5px}
+.surveyVideo .videoTextLink{font-size:.87rem;color:#d8f4a9;justify-self:start}
+@media(max-width:850px){.welcomeVideo{grid-template-columns:1fr}.welcomeVideo video{width:100%}}
+@media print{.welcomeVideo,.surveyVideo{display:none!important}}
