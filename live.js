@@ -1,4 +1,4 @@
-import {sections,renderSection,managerCsv} from './manager.mjs?v=10';
+import {sections,renderSection,managerCsv} from './manager.mjs?v=11';
 import {saveLocalPlan,mergeLocalPlans,changeLocalStatus,getLocalPlans} from './manager-store.mjs?v=2';
 import {synchronizeManagerPlans} from './manager-sync.mjs?v=1';
 import {optionsFor} from './survey-wording.mjs?v=1';
