@@ -151,7 +151,7 @@ test('Manager plan hides the alarming synchronization banner and preserves local
 
 test('Real manager UI wires automatic migration after login and periodic capability checks',()=>{
   const client=readFileSync(new URL('../public/live.js',import.meta.url),'utf8');
-  assert.match(client,/synchronizePlans\(false\)/);
+  assert.match(client,/synchronizePlans\(\)/);
   assert.doesNotMatch(client,/if\(action==='sync-plans'\)/);
   assert.match(client,/lastSyncCheck>60000/);
   assert.match(client,/synchronizeManagerPlans\(\{api,storage:localStorage,key:planKey,initialState:rawManagerState\}\)/);
