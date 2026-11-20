@@ -78,7 +78,7 @@ test('Every module in the live manager label display chain has a fresh version',
  const html=readFileSync(new URL('../core/live-shell.mjs',import.meta.url),'utf8');
  const client=readFileSync(new URL('../public/live.js',import.meta.url),'utf8');
  const manager=readFileSync(new URL('../public/manager.mjs',import.meta.url),'utf8');
- assert.match(html,/\/live\.js\?v=22/);
+ assert.match(html,/\/live\.js\?v=23/);
  assert.match(client,/from '\.\/manager\.mjs\?v=20'/);
  assert.match(client,/from '\.\/manager-advice\.mjs\?v=20'/);
  assert.match(manager,/from '\.\/manager-advice\.mjs\?v=20'/);
