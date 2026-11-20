@@ -79,9 +79,15 @@ function details(i){
 
 function analytics(){const c=cycle();return heading('Порівняльна аналітика','Зіставте оцінки груп із незалежними джерелами за один цикл.',period())+`<div class="two">${compare(c)}${compPanel(c)}</div><section class="panel bottom"><span class="kicker">ДЕТАЛІ ОЦІНЮВАННЯ</span><h2>Відповіді за категоріями</h2><div class="tablewrap"><table><thead><tr><th>Компонент</th><th>Курсанти</th><th>Викладачі</th><th>Експерт</th><th>Перевірка</th></tr></thead><tbody>${c.rows.map((r,i)=>`<tr><td><button class="textbtn" data-do="detail.${i}">${r.label}</button></td>${[r.groups.cadets,r.groups.staff,r.expert,r.fact].map(n=>`<td>${mini(n)}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="small">«—» означає недостатню кількість оцінок або відсутнє джерело. Бали подано на шкалі 0–100.</p></section>`}
 function adopt(i,practice=null){const r=cycle().rows[i],item=practice&&data.questions.find(q=>q.id===practice.id);show('Прийняти рекомендацію',`<form id="adoptform" data-i="${i}" data-question="${practice?.id||''}"><p>${practice?esc(practice.title)+' · '+esc(practice.label)+' · '+mini(practice.score)+' б.':esc(r.title)+' · '+mini(r.score)+' б. · розбіжність '+mini(r.gap)+' б.'}</p><label>Захід<textarea name="text" required minlength="2" maxlength="320">${esc(item?.action||r.action)}</textarea></label><label>Відповідальний підрозділ<select name="owner">${data.owners.map(x=>`<option>${x}</option>`).join('')}</select></label><label>Строк виконання<input name="due" type="date" required></label><button class="btn primary">Прийняти до плану</button></form>`)}
+function createMeasure(){
+ const c=cycle(),available=c.practices.filter(q=>!data.measures.some(m=>m.cycle===c.id&&m.questionId===q.id));
+ if(!available.length){msg('Усі практики цього циклу вже мають заходи.');return}
+ const q=available[0];
+ show('Новий захід',`<form id="manualmeasure"><p>Створіть управлінське рішення та вкажіть строк його перевірки.</p><label>Практика<select name="questionId" id="manualquestion">${available.map(item=>`<option value="${esc(item.id)}">${esc(item.title)}</option>`).join('')}</select></label><label>Захід<textarea name="text" minlength="2" maxlength="320" required>${esc(q.action)}</textarea></label><label>Відповідальний підрозділ<select name="owner">${data.owners.map(x=>`<option>${esc(x)}</option>`).join('')}</select></label><label>Строк виконання<input type="date" name="due" required></label><button class="btn primary">Додати до плану</button></form>`);
+}
 function actions(){
  const c=cycle();const flagged=c.rows.map((r,i)=>({...r,i})).filter(r=>r.flag&&!data.measures.some(m=>m.cycle===c.id&&m.criterion===r.i&&!m.questionId));
- return heading('План заходів','Рекомендації, відповідальні та перевірка результату в наступному циклі.',period())+
+ return heading('План заходів','Рекомендації, відповідальні та перевірка результату в наступному циклі.',period()+(data.role==='lead'?btn('Додати захід','manualmeasure','primary','plus'):''))+
  `<section class="panel"><span class="kicker">НА РОЗГЛЯДІ</span><h2>Рекомендовані заходи</h2>${flagged.length?flagged.map(r=>`<div class="task"><span class="tile amber">${icon('signal')}</span><div><b>${esc(r.title)}</b><p>${esc(r.action)}</p><span class="small">Розбіжність джерел ${mini(r.gap)} б. · Оцінка ${mini(r.score)} б.</span></div>${btn(data.role==='lead'?'Розглянути':'Підстави',data.role==='lead'?'adopt.'+r.i:'detail.'+r.i)}</div>`).join(''):'<p>Усі рекомендації цього циклу опрацьовано або пороги правил не спрацювали.</p>'}</section>
  <section class="panel bottom"><span class="kicker">КОНТРОЛЬ ВИКОНАННЯ</span><h2>Прийняті заходи усіх циклів</h2>${data.measures.length?data.measures.slice().reverse().map(m=>`<div class="actionrow"><div>${m.questionId?tag(data.questions.find(q=>q.id===m.questionId)?.title,'green')+' ':''}${tag(m.status,m.status==='Виконано'?'green':'')}<h3>${esc(m.text)}</h3><p>${esc(m.owner)} · до ${esc(m.due)} · ${esc(data.cycles.find(c=>c.id===m.cycle)?.name)}</p><p class="small">${m.verification?`Повторна оцінка · ${esc(m.verification.cycle)} · ${mini(m.verification.score)} б. (${diff(m.verification.delta)} б. до базової оцінки).`:'Перевірка результату очікує наступного завершеного циклу.'}</p></div><label class="small">Статус<select aria-label="Статус заходу" data-status="${m.id}">${['Заплановано','У роботі','Виконано'].map(s=>`<option ${s===m.status?'selected':''}>${s}</option>`).join('')}</select></label></div>`).join(''):'<p>Прийміть рекомендацію, щоб призначити відповідального та строк.</p>'}</section>`;
 }
@@ -172,7 +178,8 @@ async function doAction(s){
   await api(data.inExample?'demo-return':'demo-example',{});page='overview';location.hash='overview';currentId=null;
   componentFilter=outcomeFilter='all';surveySession=null;await reload();msg(data.inExample?'Відкрито окремий приклад. Ваші попередні дані збережено.':'Ви у своєму просторі');return
  }
- if(a==='practice'){practiceDetail(v);return}
+ if(a==='manualmeasure'){createMeasure();return}
+  if(a==='practice'){practiceDetail(v);return}
  if(a==='practiceadopt'){const q=cycle().practices.find(x=>x.id===v);if(q)adopt(q.component,q);return}
  if(a==='clearfilters'){componentFilter=outcomeFilter='all';render();return}
  if(a==='resume'&&surveySession){surveyScreen();return}
@@ -217,7 +224,8 @@ document.addEventListener('change',e=>{const t=e.target;
  if(t.name==='choice'&&surveySession)surveySession.answers[surveySession.step]=Number(t.value);
  if(t.id==='componentFilter'){componentFilter=t.value;render();$('#componentFilter')?.focus()}
  if(t.id==='outcomeFilter'){outcomeFilter=t.value;render();$('#outcomeFilter')?.focus()}
- if(t.id==='period'){currentId=Number(t.value);render()}if(t.id==='memberGroup'){groupView=t.value;render()}
+ if(t.id==='manualquestion'){const q=cycle().practices.find(q=>q.id===t.value),f=t.closest('form');if(q&&f)f.elements.text.value=q.action}
+  if(t.id==='period'){currentId=Number(t.value);render()}if(t.id==='memberGroup'){groupView=t.value;render()}
  if(t.id==='role')perform(async()=>{await api('role',{role:t.value});page='overview';location.hash='overview';await reload()});
  if(t.dataset.status)perform(async()=>{await api('status',{id:t.dataset.status,status:t.value});await reload();msg('Статус оновлено')})
 });
@@ -236,7 +244,8 @@ document.addEventListener('submit',e=>{e.preventDefault();const f=e.target,fd=ne
   show('Дякуємо за участь',`<div class="success">${icon('check',28)}</div><p>Ваші відповіді додано до групових сум. Підсумки поточного циклу з’являться після його завершення.</p>${res.latest?`<h3>Попередній цикл · ${esc(res.latest.name)}</h3>${res.latest.rows.map(r=>`<div class="factrow"><span>${r.label}</span><b>${mini(r.groups?.[res.group])} б.</b></div>`).join('')}`:''}${btn('Готово','dismiss','primary')}`);
   if(data)await reload();else root.innerHTML=`<main class="standalone">${logo()}<h1>Анкету прийнято</h1><p>Дякуємо за участь в оцінюванні.</p></main>`;return
  }
- if(f.id==='adoptform'){await api('measure',{cycle:cycle().id,criterion:Number(f.dataset.i),questionId:f.dataset.question||undefined,text:value('text'),due:value('due'),owner:value('owner')});dialog.close();page='actions';location.hash='actions';await reload();msg('Захід додано до плану');return}
+ if(f.id==='manualmeasure'){const q=cycle().practices.find(q=>q.id===value('questionId'));if(!q)throw Error('Оберіть практику.');await api('measure',{cycle:cycle().id,criterion:q.component,questionId:q.id,text:value('text'),due:value('due'),owner:value('owner')});dialog.close();page='actions';location.hash='actions';await reload();msg('Захід додано до плану');return}
+  if(f.id==='adoptform'){await api('measure',{cycle:cycle().id,criterion:Number(f.dataset.i),questionId:f.dataset.question||undefined,text:value('text'),due:value('due'),owner:value('owner')});dialog.close();page='actions';location.hash='actions';await reload();msg('Захід додано до плану');return}
  if(f.id==='inputsform'){await api('inputs',{cycle:openCycle().id,expert:[0,1,2].map(i=>Number(value('e'+i))),facts:[0,1,2].map(i=>({a:Number(value('a'+i)),b:Number(value('b'+i))}))});dialog.close();await reload();msg('Показники збережено');return}
  if(f.id==='newcycle'){await api('cycle',{name:value('name'),k:Number(value('k'))});dialog.close();await reload();msg('Цикл відкрито')}
  })});
