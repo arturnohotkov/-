@@ -40,7 +40,7 @@ async function api(name,body){
 function managerState(remote){
   return {...mergeLocalPlans(remote,localStorage,planKey),serverManualMeasures:!!info?.manualMeasures};
 }
-async function synchronizePlans(showResult=false){
+async function synchronizePlans(){
   if(syncingPlans||!started)return;
   syncingPlans=true;lastSyncCheck=Date.now();
   const notice=root.querySelector('#notice');
@@ -48,12 +48,10 @@ async function synchronizePlans(showResult=false){
     // Check the current hosted backend, not a hard-coded flag from GitHub.
     info=await api('info');
     if(!info.manualMeasures){
-      if(showResult&&notice){notice.textContent='Спільний сервер поки використовує стару версію. Локальні заходи збережені; синхронізація стане доступною після його оновлення.';notice.setAttribute('role','status')}
       return;
     }
     const unsent=Object.keys(getLocalPlans(localStorage,planKey)).length;
     if(!unsent){
-      if(showResult&&notice){notice.textContent='Локальних заходів для перенесення немає. Спільний план доступний з різних пристроїв після входу.';notice.setAttribute('role','status')}
       return;
     }
     const progress=root.querySelector('#sync');
@@ -169,7 +167,7 @@ async function refresh(){
     const serialized=JSON.stringify(s);
     if(serialized!==lastDashboard){lastState=s;lastDashboard=serialized;results(s)}
     document.querySelector('#sync').textContent='Оновлено о '+new Date().toLocaleTimeString('uk-UA')+' · автоматично кожні 5 с';
-    if(lastState?.pendingLocalCount&&Date.now()-lastSyncCheck>60000)void synchronizePlans(false);
+    if(lastState?.pendingLocalCount&&Date.now()-lastSyncCheck>60000)void synchronizePlans();
   }catch(e){if(!started)return;if(e.status===401)login();else document.querySelector('#sync').textContent='Зв’язок перервано. Наступна спроба через 5 с.'}
   finally{refreshing=false}
 }
@@ -242,7 +240,7 @@ root.addEventListener('submit',async e=>{
       const result=await api('answer',{answers:answers.map(v=>v===5?null:v),group,proposal:shared&&q?q.id:null,variant:shared&&q?submittedVariant:null});
       receipt(!!result.existing);answers=[];
     }
-    if(form.getAttribute('id')==='login'){await api('login',{key:fields.get('key')});form.reset();manager();await refresh();await synchronizePlans(false)}
+    if(form.getAttribute('id')==='login'){await api('login',{key:fields.get('key')});form.reset();manager();await refresh();await synchronizePlans()}
     if(form.getAttribute('id')==='plan'){
       const payload=Object.fromEntries(fields);
       let resultText='';
@@ -306,7 +304,7 @@ async function boot(){
   info=await api('info');
   if(route==='/survey'){surveyIntro();return}
   if(route==='/manager'){
-    try{rawManagerState=await api('state');manager();const state=managerState(rawManagerState);results(state);lastState=state;lastDashboard=JSON.stringify(state);document.querySelector('#sync').textContent='Поточні дані · автоматичне оновлення кожні 5 с';await synchronizePlans(false)}
+    try{rawManagerState=await api('state');manager();const state=managerState(rawManagerState);results(state);lastState=state;lastDashboard=JSON.stringify(state);document.querySelector('#sync').textContent='Поточні дані · автоматичне оновлення кожні 5 с';await synchronizePlans()}
     catch(e){if(e.status===401)login();else throw e}
     setInterval(refresh,5000);document.addEventListener('visibilitychange',refresh);return
   }
