@@ -1,4 +1,5 @@
 import {sections,renderSection,managerCsv} from './manager.mjs?v=11';
+import {choosePracticeGuidance} from './manager-advice.mjs';
 import {saveLocalPlan,mergeLocalPlans,changeLocalStatus,getLocalPlans} from './manager-store.mjs?v=2';
 import {synchronizeManagerPlans} from './manager-sync.mjs?v=1';
 import {optionsFor} from './survey-wording.mjs?v=1';
@@ -208,7 +209,7 @@ root.addEventListener('click',async e=>{
     const select=form.elements.id;
     select.innerHTML=available.map(q=>`<option value="${safe(q.id)}">${safe(q.title)}</option>`).join('');
     select.value=available.some(q=>q.id===button.dataset.plan)?button.dataset.plan:available[0].id;
-    const item=available.find(q=>q.id===select.value);
+    const item=choosePracticeGuidance(available.find(q=>q.id===select.value));
     form.elements.action.value=item.action;form.elements.verify.value=item.verify;
     const due=new Date();due.setDate(due.getDate()+30);form.elements.due.value=[due.getFullYear(),String(due.getMonth()+1).padStart(2,'0'),String(due.getDate()).padStart(2,'0')].join('-');
     if(!info.manualMeasures){const note=form.querySelector('.planError');note.textContent='Захід буде збережено на цьому пристрої.';note.setAttribute('role','status')}
@@ -267,7 +268,7 @@ root.addEventListener('submit',async e=>{
 });
 root.addEventListener('change',async e=>{
   const el=e.target;
-  if(el.id==='plan-practice'&&lastState){const item=lastState.practices.find(q=>q.id===el.value),form=root.querySelector('#plan');if(item){form.elements.action.value=item.action;form.elements.verify.value=item.verify}}
+  if(el.id==='plan-practice'&&lastState){const item=choosePracticeGuidance(lastState.practices.find(q=>q.id===el.value)),form=root.querySelector('#plan');if(item){form.elements.action.value=item.action;form.elements.verify.value=item.verify}}
   if(el.name==='share'&&el.closest('#send')){
     shared=el.checked;
     const button=root.querySelector('#send button:not([type=button])');
