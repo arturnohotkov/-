@@ -10,7 +10,7 @@ export function proposalCandidates(questions,answers){
   );
 }
 export function proposalVariant(score){
-  return Number.isInteger(score)&&score<=1?'low':score===2?'mid':Number.isInteger(score)&&score>=3?'high':'mid';
+  return Number.isInteger(score)&&score<=1?'low':score===2?'mid':Number.isInteger(score)&&score>=3&&score<=4?'high':'mid';
 }
 export const variantLabels={
   original:'Базовий захід',
