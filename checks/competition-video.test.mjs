@@ -52,25 +52,21 @@ test('New MP4 has nine visually distinct original-deck-style scene mockups inste
  assert.match(script,/Часткове впровадження/);
 });
 
-test('Ukrainian narration marks dictionary stresses, corrects names and avoids unnatural English reading',()=>{
- assert.match(workflow,/ukrainian-word-stress/);
- assert.match(workflow,/marisa-trie/);
- assert.match(script,/from ukrainian_word_stress import Stressifier, StressSymbol, Disambiguation/);
- assert.match(script,/Disambiguation\.Dictionary/);
- assert.match(script,/"воробці":"воробці́"/u);
- assert.match(script,/"доброчесність":"доброче́сність"/u);
- assert.match(script,/"заходи":"за́ходи"/u);
- assert.match(script,/raw\.replace\("Integrity Management Dashboard","панель управління доброчесністю"\)/);
- assert.match(script,/pitch="\+0Hz"/);
+test('Ukrainian narration uses the original natural voice without artificial stress markers',()=>{
+ assert.match(workflow,/uk-UA-PolinaNeural/);
+ assert.doesNotMatch(workflow,/ukrainian-word-stress|marisa-trie/);
+ assert.doesNotMatch(script,/Stressifier|prepare_spoken_text|CombiningAcuteAccent/);
+ assert.match(script,/edge_tts\.Communicate\(text=s\["narr"\],voice=VOICE,rate="-3%",pitch="-2Hz"\)/);
+ assert.match(script,/No combining accent marks, dictionary substitutions/);
 });
 
 test('All public MP4 players use refreshed video assets and offer closed captions',()=>{
  assert.match(workflow,/vorobtsi-intro\.uk\.vtt/);
  assert.match(script,/def write_captions/);
  const survey=ui.slice(ui.indexOf('function surveyIntro(){'),ui.indexOf('function question(){'));
- assert.match(survey,/vorobtsi-intro\.mp4\?v=2/);
- assert.match(survey,/vorobtsi-intro\.uk\.vtt\?v=2/);
- assert.match(page,/vorobtsi-intro\.mp4\?v=2/);
- assert.match(page,/vorobtsi-intro\.uk\.vtt\?v=2/);
+ assert.match(survey,/vorobtsi-intro\.mp4\?v=3/);
+ assert.match(survey,/vorobtsi-intro\.uk\.vtt\?v=3/);
+ assert.match(page,/vorobtsi-intro\.mp4\?v=3/);
+ assert.match(page,/vorobtsi-intro\.uk\.vtt\?v=3/);
  assert.match(page,/kind="captions"/);
 });
