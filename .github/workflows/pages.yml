@@ -5,9 +5,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-  actions: write
-  pages: write
-  id-token: write
 concurrency:
   group: integrity-site-publication
   cancel-in-progress: false
@@ -26,7 +23,7 @@ jobs:
         run: node --test checks/*.test.mjs
       - name: Зібрати публічний сайт
         run: node offline/build-pages.mjs pages
-      - name: Оновити гілку gh-pages
+      - name: Оновити публічну гілку gh-pages
         shell: bash
         run: |
           set -euo pipefail
@@ -42,36 +39,3 @@ jobs:
             git -C "$RUNNER_TEMP/gh-pages-site" commit -m "Publish latest integrity dashboard"
             git -C "$RUNNER_TEMP/gh-pages-site" push origin HEAD:gh-pages
           fi
-      - name: Запустити публікацію з gh-pages
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --fail-with-body --silent --show-error --request POST \
-            --header "Authorization: Bearer $GH_TOKEN" \
-            --header "Accept: application/vnd.github+json" \
-            --header "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/pages.yml/dispatches" \
-            --data '{"ref":"gh-pages"}'
-  deploy:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/gh-pages'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Підготувати опубліковані файли
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p site
-          cp index.html live.js live.css manager.mjs manager-store.mjs mark.svg demo.mp4 demo-poster.jpg vorobtsi-qr.png presentation.html .nojekyll site/
-          cp -R demo manager survey site/
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-      - id: deployment
-        uses: actions/deploy-pages@v4
