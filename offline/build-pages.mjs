@@ -24,7 +24,11 @@ await mkdir(output,{recursive:true});
 for(const section of ['','manager','survey']){
   const directory=join(output,section);
   await mkdir(directory,{recursive:true});
-  await writeFile(join(directory,'index.html'),page);
+  const publicBase='https://arturnohotkov.github.io'+base+'/';
+  const canonical=publicBase+(section?section+'/':'');
+  const brandedPage=page.replace('<meta charset="utf-8">',
+    '<link rel="canonical" href="'+canonical+'"><meta property="og:url" content="'+canonical+'"><meta charset="utf-8">');
+  await writeFile(join(directory,'index.html'),brandedPage);
 }
 for(const asset of ['live.js','live.css','mark.svg','manager.mjs','manager-advice.mjs','manager-store.mjs','manager-sync.mjs','survey-wording.mjs','survey-advice.mjs','vorobtsi-qr.png','demo.mp4','demo-poster.jpg','presentation.html'])await copyFile(join(root,'public',asset),join(output,asset));
 if(process.env.GITHUB_REPOSITORY?.toLowerCase()==='arturnohotkov/-'){
