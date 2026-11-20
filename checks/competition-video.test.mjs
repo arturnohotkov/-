@@ -85,12 +85,11 @@ test('Brand mark in ALL nine slide headers and closing emblem comes directly fro
 
 test('Logo-only publication keeps original AAC audio bit-identical and preserves original captions',()=>{
  const patch=readFileSync(new URL('../tools/replace-video-logo-only.py',import.meta.url),'utf8');
- const ci=readFileSync(new URL('../.github/workflows/patch-official-video-logo-once.yml',import.meta.url),'utf8');
  assert.match(patch,/sha256/);
  assert.match(patch,/old_hash==new_hash/);
  assert.match(patch,/git|mark\.svg/);
  assert.match(patch,/write_text\("".join/);
- assert.match(ci,/git show origin\/gh-pages:vorobtsi-intro\.mp4/);
- assert.match(ci,/git show origin\/gh-pages:vorobtsi-intro\.uk\.vtt/);
- assert.doesNotMatch(ci,/edge-tts|voice-|Communicate/);
+ assert.match(patch,/ORIGINAL=WORK\/"before\.mp4"/);
+ assert.match(patch,/CAPTIONS=WORK\/"before\.uk\.vtt"/);
+ assert.doesNotMatch(patch,/edge-tts|edge_tts|Communicate/);
 });
