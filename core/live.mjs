@@ -113,7 +113,7 @@ function record(s,group,answers,proposal,fingerprint,variant){
 function dashboard(s){
   const items=practices(s);
   const stats=figures(s,items);
-  const proposals=QUESTIONS.map(q=>({
+  const proposals=QUESTIONS.filter(q=>s.votes[q.id]||s.plans[q.id]).map(q=>({
     id:q.id,title:q.title,action:q.action,votes:s.votes[q.id]||0,plan:s.plans[q.id]?{action:q.action,verify:legacyGuidance[q.id]?.verify,...s.plans[q.id]}:null
   })).sort((a,b)=>b.votes-a.votes);
   return {total:s.total,minimum:MINIMUM,...stats,practices:items,proposals,history:s.history};
