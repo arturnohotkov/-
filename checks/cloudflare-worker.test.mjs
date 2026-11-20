@@ -49,3 +49,16 @@ test('Cloudflare Worker deployment is defined within this GitHub repository',()=
  assert.match(workflow,/secrets.CLOUDFLARE_API_TOKEN/);
  assert.match(workflow,/secrets.VECTOR_MANAGER_HASH/);
 });
+
+test('Existing GitHub Pages remains on the original production API until explicit opt-in',()=>{
+ const pageBuild=readFileSync(new URL('../offline/build-pages.mjs',import.meta.url),'utf8');
+ assert.match(pageBuild,/previousApi='https:\/\/vektor-integrity-lab\.clayblade5\.chatgpt\.site'/);
+ assert.match(pageBuild,/process\.env\.VECTOR_API_URL/);
+ assert.match(pageBuild,/configuredApi\|\|previousApi/);
+ assert.match(pageBuild,/parsedApi\.protocol!=='https:'/);
+ const published=readFileSync(new URL('../.github/workflows/pages.yml',import.meta.url),'utf8');
+ assert.match(published,/VECTOR_API_URL: \$\{\{ vars\.VECTOR_API_URL \}\}/);
+ const client=readFileSync(new URL('../public/live.js',import.meta.url),'utf8');
+ assert.match(client,/originalPlanKey='vektor-manager-actions-v1:'/);
+ assert.match(client,/localStorage\.getItem\(originalPlanKey\)/);
+});
