@@ -176,7 +176,6 @@ async function refresh(){
 root.addEventListener('click',async e=>{
   const button=e.target.closest('button');if(!button)return;
   const action=button.dataset.action;
-  if(action==='sync-plans'){await synchronizePlans(true);return}
   if(action==='print')window.print();
   if(action==='csv'&&lastState)downloadCsv();
   if(action==='back'){
@@ -214,7 +213,7 @@ root.addEventListener('click',async e=>{
     const item=available.find(q=>q.id===select.value);
     form.elements.action.value=item.action;form.elements.verify.value=item.verify;
     const due=new Date();due.setDate(due.getDate()+30);form.elements.due.value=[due.getFullYear(),String(due.getMonth()+1).padStart(2,'0'),String(due.getDate()).padStart(2,'0')].join('-');
-    if(!info.manualMeasures){const note=form.querySelector('.planError');note.textContent='Поки сервер не оновлено, цей захід збережеться у вашому браузері. Інші пристрої його не бачитимуть.';note.setAttribute('role','status')}
+    if(!info.manualMeasures){const note=form.querySelector('.planError');note.textContent='Захід буде збережено на цьому пристрої.';note.setAttribute('role','status')}
     root.querySelector('dialog').showModal();
   }
 });
@@ -256,7 +255,7 @@ root.addEventListener('submit',async e=>{
         resultText=response.existing?'Цей захід уже був у спільному плані.':'Захід збережено на сервері ✓';
       }else{
         saveLocalPlan(localStorage,planKey,payload,lastState.practices);
-        resultText='Захід збережено в цьому браузері ✓ · для спільного збереження необхідне оновлення сервера.';
+        resultText='Захід збережено на цьому пристрої ✓';
       }
       lastState=managerState(rawManagerState||await api('state'));
       lastDashboard=JSON.stringify(lastState);
