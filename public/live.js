@@ -1,4 +1,4 @@
-import {sections,renderSection,managerCsv} from './manager.mjs?v=7';
+import {sections,renderSection,managerCsv} from './manager.mjs?v=8';
 const root=document.querySelector('#room');
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const url=new URL(location.href);
@@ -76,7 +76,7 @@ function login(){
 }
 function manager(){
   started=true;lastDashboard='';
-  root.innerHTML=`<div class="managerHead"><div><span class="overline">Спільне оцінювання</span><h1>Кабінет керівника</h1></div><button class="btn" data-action="logout">Вийти</button></div><div class="share"><div><b>Посилання для всіх учасників</b><a id="survey-link" href="${link('/survey')}">Воробці — пройти анкету</a></div><div class="shareActions"><button class="btn" data-action="copy">Скопіювати посилання</button><a class="btn" download="vorobtsi-qr.png" href="${base}/vorobtsi-qr.png">Завантажити QR</a></div></div><p id="sync" role="status">Завантаження результатів…</p><nav id="manager-nav" class="managerNav" aria-label="Розділи кабінету"></nav><div id="figures"></div><p id="notice" role="alert"></p><dialog aria-labelledby="plan-title"><form id="plan"><h2 id="plan-title">Прийняти захід</h2><p id="plan-action"></p><input type="hidden" name="id"><label>Відповідальний підрозділ<select name="owner"><option>Уповноважений з доброчесності</option><option>Навчальний відділ</option><option>Робоча група</option></select></label><label>Строк виконання<input type="date" name="due" required></label><div class="tools"><button class="btn" data-action="cancel" type="button">Скасувати</button><button class="btn dark">Додати до плану</button></div><p class="planError" role="alert"></p></form></dialog>`;
+  root.innerHTML=`<div class="managerHead"><div><span class="overline">Спільне оцінювання</span><h1>Кабінет керівника</h1></div><button class="btn" data-action="logout">Вийти</button></div><div class="share"><div><b>Посилання для всіх учасників</b><a id="survey-link" href="${link('/survey')}">Воробці — пройти анкету</a></div><div class="shareActions"><button class="btn" data-action="copy">Скопіювати посилання</button><a class="btn" download="vorobtsi-qr.png" href="${base}/vorobtsi-qr.png">Завантажити QR</a></div></div><p id="sync" role="status">Завантаження результатів…</p><nav id="manager-nav" class="managerNav" aria-label="Розділи кабінету"></nav><div id="figures"></div><p id="notice" role="alert"></p><dialog aria-labelledby="plan-title"><form id="plan"><h2 id="plan-title">Новий захід у плані</h2><p class="hint">Оберіть практику та сформулюйте рішення, яке можна перевірити.</p><label>Практика<select name="id" id="plan-practice" required></select></label><label>Захід<textarea name="action" id="plan-action" minlength="2" maxlength="320" rows="3" required></textarea></label><label>Ознака виконання<textarea name="verify" id="plan-verify" minlength="2" maxlength="320" rows="2" required></textarea></label><label>Відповідальний підрозділ<select name="owner"><option>Уповноважений з доброчесності</option><option>Навчальний відділ</option><option>Робоча група</option></select></label><label>Строк виконання<input type="date" name="due" required></label><div class="tools"><button class="btn" data-action="cancel" type="button">Скасувати</button><button class="btn dark">Зберегти захід</button></div><p class="planError" role="alert"></p></form></dialog>`;
 }
 let practiceFilter='all';
 function results(s){
@@ -134,9 +134,17 @@ root.addEventListener('click',async e=>{
       }
     }
   }
-  if(button.dataset.plan&&lastState){
-    const item=lastState.practices.find(q=>q.id===button.dataset.plan),form=root.querySelector('#plan');
-    form.reset();form.elements.id.value=item.id;form.querySelector('.planError').textContent='';root.querySelector('#plan-action').textContent=item.action;root.querySelector('dialog').showModal();
+  if((button.hasAttribute('data-plan')||button.hasAttribute('data-plan-new'))&&lastState){
+    const form=root.querySelector('#plan');
+    const available=lastState.practices.filter(q=>!lastState.proposals.some(p=>p.id===q.id&&p.plan));
+    if(!available.length){errorText(new Error('Усі практики вже мають заходи у плані.'));return}
+    form.reset();form.querySelector('.planError').textContent='';
+    const select=form.elements.id;
+    select.innerHTML=available.map(q=>`<option value="${safe(q.id)}">${safe(q.title)}</option>`).join('');
+    select.value=available.some(q=>q.id===button.dataset.plan)?button.dataset.plan:available[0].id;
+    const item=available.find(q=>q.id===select.value);
+    form.elements.action.value=item.action;form.elements.verify.value=item.verify;
+    root.querySelector('dialog').showModal();
   }
 });
 root.addEventListener('submit',async e=>{
@@ -158,6 +166,7 @@ root.addEventListener('submit',async e=>{
 });
 root.addEventListener('change',async e=>{
   const el=e.target;
+  if(el.id==='plan-practice'&&lastState){const item=lastState.practices.find(q=>q.id===el.value),form=root.querySelector('#plan');if(item){form.elements.action.value=item.action;form.elements.verify.value=item.verify}}
   if(el.name==='choice')answers[step]=Number(el.value);
   if(el.id==='proposal-choice'){selectedProposal=el.value;variant='original';shared=false;review();root.querySelector('#proposal-choice')?.focus()}
   if(el.id==='proposal-variant'){variant=el.value;shared=false;review();root.querySelector('#proposal-variant')?.focus()}
