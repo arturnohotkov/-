@@ -11,4 +11,7 @@ jobs:
         with:
           node-version: 24
       - run: node --check public/vector.js
+      - run: node --check public/live.js
+      - run: node --check public/manager.mjs
+      - run: node --check core/live.mjs
       - run: node --test checks/*.test.mjs
