@@ -73,3 +73,18 @@ test('The wide intermediate classification gets three distinct badges, while dem
  const demoBuild=readFileSync(new URL('../offline/build-html.mjs',import.meta.url),'utf8');
  assert.doesNotMatch(demoBuild,/manager-advice\.mjs/);
 });
+
+test('Every module in the live manager label display chain has a fresh version',()=>{
+ const html=readFileSync(new URL('../core/live-shell.mjs',import.meta.url),'utf8');
+ const client=readFileSync(new URL('../public/live.js',import.meta.url),'utf8');
+ const manager=readFileSync(new URL('../public/manager.mjs',import.meta.url),'utf8');
+ assert.match(html,/\/live\.js\?v=20/);
+ assert.match(client,/from '\.\/manager\.mjs\?v=20'/);
+ assert.match(client,/from '\.\/manager-advice\.mjs\?v=20'/);
+ assert.match(manager,/from '\.\/manager-advice\.mjs\?v=20'/);
+ assert.doesNotMatch(manager,/from '\.\/manager-advice\.mjs'/);
+ const display=renderSection({total:20,index:51,components:[],history:[],proposals:[],practices:[sample(51)],minimum:7},
+   {criteria:['Культура','Система','Підзвітність'],questions:[{id:'system',question:'Який стан?'}]},'questions');
+ assert.match(display,/Часткове впровадження/);
+ assert.doesNotMatch(display,/Практика формується/);
+});
