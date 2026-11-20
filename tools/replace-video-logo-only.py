@@ -4,7 +4,7 @@
 Keep the audio packets of the existing published MP4 byte-for-byte identical.
 Reconstruct the same nine animated slides at scene times taken from the existing
 WebVTT (rather than re-generating the voice), and publish the corrected picture.
-All narration, captions, scene copy, and statistics stay unchanged.
+All narration, captions, scene copy, and statistics stay unchanged. Only the V badge is corrected.
 """
 from __future__ import annotations
 import hashlib
