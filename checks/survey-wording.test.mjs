@@ -27,7 +27,7 @@ test('All 15 live survey items have five distinct, detailed answer choices for c
 test('Live survey presents role-specific choices while keeping the same 0–4 score values',()=>{
   const source=readFileSync(new URL('../public/live.js',import.meta.url),'utf8');
   assert.match(source,/optionsFor\(q,group\)/);
-  assert.match(source,/optionsFor\(lowest\.item,group\)\[lowest\.score\]/);
+  assert.match(source,/optionsFor\(item,group\)\[score\]/);
   assert.ok(source.includes('value="${i}"'),'Radio answers preserve numeric 0–4 values');
   assert.match(source,/Не можу оцінити \/ бракує інформації/);
   assert.match(source,/answers\.map\(v=>v===5\?null:v\)/);
@@ -40,5 +40,5 @@ test('Only public live survey bundles the new wording; offline demo remains inde
   const demoBuild=readFileSync(new URL('../offline/build-html.mjs',import.meta.url),'utf8');
   assert.doesNotMatch(demoBuild,/survey-wording\.mjs/);
   const liveShell=readFileSync(new URL('../core/live-shell.mjs',import.meta.url),'utf8');
-  assert.match(liveShell,/\/live\.js\?v=12/);
+  assert.match(liveShell,/\/live\.js\?v=13/);
 });
