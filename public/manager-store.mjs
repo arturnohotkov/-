@@ -39,16 +39,24 @@ export function changeLocalStatus(storage,key,id,status){
 export function mergeLocalPlans(state,storage,key){
   const local=getLocalPlans(storage,key),proposals=state.proposals.map(p=>({...p}));
   let count=0;
+  const pending=Object.keys(local).length;
+  const conflicts=[];
   for(const q of state.practices){
     const draft=local[q.id];
     if(!draft)continue;
     const existing=proposals.find(p=>p.id===q.id);
     // Спільні записи завжди мають пріоритет над локальними.
-    if(existing?.plan)continue;
+    if(existing?.plan){
+      const remote=existing.plan;
+      if(['action','verify','owner','due','status'].some(k=>String(remote[k]??'')!==String(draft[k]??''))){
+        conflicts.push({id:q.id,title:q.title,local:draft});
+      }
+      continue;
+    }
     const plan={...draft,localOnly:true};
     if(existing)existing.plan=plan;
     else proposals.push({id:q.id,title:q.title,action:q.action,votes:q.votes||0,plan});
     count++;
   }
-  return {...state,proposals,localPlanCount:count};
+  return {...state,proposals,localPlanCount:count,pendingLocalCount:pending,localConflicts:conflicts,localConflictCount:conflicts.length};
 }
