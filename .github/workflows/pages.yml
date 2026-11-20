@@ -67,7 +67,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p site
-          cp index.html live.js live.css manager.mjs mark.svg demo.mp4 demo-poster.jpg vorobtsi-qr.png presentation.html .nojekyll site/
+          cp index.html live.js live.css manager.mjs manager-store.mjs mark.svg demo.mp4 demo-poster.jpg vorobtsi-qr.png presentation.html .nojekyll site/
           cp -R demo manager survey site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
