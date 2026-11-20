@@ -149,7 +149,7 @@ export async function handleLive(req,db,managerHash){
       try{body=JSON.parse(text)}catch{problem('Невірний запит.',400)}
       if(!body||Array.isArray(body)||typeof body!=='object')problem('Невірний запит.',400);
     }
-    if(route==='live-info')return reply({questions:QUESTIONS,requiredCount,criteria:CRITERIA.map(c=>c.label),groups:GROUPS,minimum:MINIMUM,managerConfigured:!!managerHash});
+    if(route==='live-info')return reply({questions:QUESTIONS,requiredCount,criteria:CRITERIA.map(c=>c.label),groups:GROUPS,minimum:MINIMUM,managerConfigured:!!managerHash,manualMeasures:true});
     if(route==='live-logout'){if(!pages)setCookie('vector_manager','',0);return reply({ok:true})}
     if(route==='live-login'){
       if(!managerHash)problem('Вхід керівника ще не налаштовано.',503);
