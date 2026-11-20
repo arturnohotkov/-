@@ -1,0 +1,25 @@
+name: Одноразово пройти 24 анкети для перевірки динаміки
+on:
+  push:
+    branches: [main]
+    paths:
+      - tools/seed-questionnaires-once.mjs
+permissions:
+  contents: read
+concurrency:
+  group: questionnaires-single-pilot-2026-11-20
+  cancel-in-progress: false
+jobs:
+  seed:
+    if: github.event.head_commit.message == 'Run 24 survey responses: 12 cadets and 12 teachers'
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Перевірити синтаксис тестового запиту
+        run: node --check tools/seed-questionnaires-once.mjs
+      - name: Надіслати 12 анкет курсантів і 12 викладачів
+        run: node tools/seed-questionnaires-once.mjs
