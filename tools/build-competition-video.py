@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the public 'Воробці' competition introduction with Ukrainian neural narration.
+"""Generate and render the public 'Воробці' competition introduction with Ukrainian neural narration.
 Generates a 1280x720 MP4 and matching poster inside output directory.
 No keys or personal data. This is synthetic visual explanation, not real survey data.
 Requires edge-tts, pillow and ffmpeg. Uses the script at the bottom as ground truth.
