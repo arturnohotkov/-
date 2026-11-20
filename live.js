@@ -1,4 +1,4 @@
-import {sections,renderSection,managerCsv} from './manager.mjs?v=11';
+import {sections,renderSection,managerCsv} from './manager.mjs?v=12';
 import {choosePracticeGuidance} from './manager-advice.mjs';
 import {saveLocalPlan,mergeLocalPlans,changeLocalStatus,getLocalPlans} from './manager-store.mjs?v=2';
 import {synchronizeManagerPlans} from './manager-sync.mjs?v=1';
