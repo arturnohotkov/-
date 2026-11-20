@@ -17,7 +17,7 @@ const storage={
 const externalOrigin=process.env.VECTOR_ORIGIN?new URL(process.env.VECTOR_ORIGIN).origin:null;
 const mode=process.env.VECTOR_MODE||'demo',keys={lead:process.env.VECTOR_LEAD_KEY,officer:process.env.VECTOR_OFFICER_KEY};
 if(!['demo','team'].includes(mode)||mode==='team'&&(!keys.lead||!keys.officer||keys.lead===keys.officer))throw Error('Потрібні окремі VECTOR_LEAD_KEY та VECTOR_OFFICER_KEY.');
-const assets={'/demo.mp4':'video/mp4','/demo-poster.jpg':'image/jpeg','/manager.mjs':'text/javascript','/survey-wording.mjs':'text/javascript','/vorobtsi-qr.png':'image/png','/live.js':'text/javascript','/live.css':'text/css','/vector.js':'text/javascript','/transport.mjs':'text/javascript','/vektor.html':'text/html; charset=utf-8','/vector.css':'text/css','/mark.svg':'image/svg+xml'};
+const assets={'/demo.mp4':'video/mp4','/demo-poster.jpg':'image/jpeg','/manager.mjs':'text/javascript','/survey-wording.mjs':'text/javascript','/survey-advice.mjs':'text/javascript','/vorobtsi-qr.png':'image/png','/live.js':'text/javascript','/live.css':'text/css','/vector.js':'text/javascript','/transport.mjs':'text/javascript','/vektor.html':'text/html; charset=utf-8','/vector.css':'text/css','/mark.svg':'image/svg+xml'};
 const server=createServer(async(req,res)=>{
  try{
  const url=new URL(req.url,externalOrigin||('http://'+req.headers.host));
