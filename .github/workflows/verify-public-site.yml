@@ -1,0 +1,61 @@
+name: Перевірка опублікованого сайту
+on:
+  workflow_run:
+    workflows: ["pages build and deployment"]
+    branches: [gh-pages]
+    types: [completed]
+  push:
+    branches: [main]
+    paths: [".github/workflows/verify-public-site.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-integrity-dashboard-public
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment:
+      name: integrity-dashboard-public
+      url: https://arturnohotkov.github.io/-/
+    steps:
+      - name: Перевірити результат публікації GitHub Pages
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success'
+        run: |
+          echo "::error::GitHub Pages не завершив публікацію успішно."
+          exit 1
+
+      - name: Отримати опубліковану версію з gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || 'gh-pages' }}
+          persist-credentials: false
+
+      - name: Звірити публічні сторінки та файли з версією в Git
+        shell: bash
+        env:
+          SITE: https://arturnohotkov.github.io/-/
+        run: |
+          set -euo pipefail
+          revision=$(git rev-parse HEAD)
+          received="$RUNNER_TEMP/public-site-response"
+          files=(index.html survey/index.html manager/index.html live.js live.css manager.mjs manager-sync.mjs survey-advice.mjs presentation.html vorobtsi-intro.mp4)
+          for file in "${files[@]}"; do
+            url="$SITE${file%index.html}?revision=$revision"
+            for attempt in {1..5}; do
+              if curl --fail --silent --show-error --location --max-time 30 "$url" --output "$received" && cmp -s "$file" "$received"; then
+                echo "Перевірено $file"
+                break
+              fi
+              if [[ "$attempt" == 5 ]]; then
+                echo "::error file=$file::Публічний файл не збігається з версією $revision."
+                exit 1
+              fi
+              sleep 10
+            done
+          done
