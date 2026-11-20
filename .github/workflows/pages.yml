@@ -22,6 +22,9 @@ jobs:
       - name: Перевірити код
         run: node --test checks/*.test.mjs
       - name: Зібрати публічний сайт
+        # Do not switch to another API unless the existing shared data has been migrated.
+        env:
+          VECTOR_API_URL: ${{ vars.VECTOR_API_URL }}
         run: node offline/build-pages.mjs pages
       - name: Оновити публічну гілку gh-pages
         shell: bash
