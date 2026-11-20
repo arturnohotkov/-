@@ -145,7 +145,7 @@ root.addEventListener('click',async e=>{
     const item=available.find(q=>q.id===select.value);
     form.elements.action.value=item.action;form.elements.verify.value=item.verify;
     const due=new Date();due.setDate(due.getDate()+30);form.elements.due.value=[due.getFullYear(),String(due.getMonth()+1).padStart(2,'0'),String(due.getDate()).padStart(2,'0')].join('-');
-    if(!info.manualMeasures){const note=form.querySelector('.planError');note.textContent='У спільному сервері ще діє попередня логіка: дозволені лише автоматично визначені рекомендації. Для довільних заходів відкрийте демонстраційну панель.';note.setAttribute('role','status')}
+    if(!info.manualMeasures){const note=form.querySelector('.planError');note.textContent='Для довільних заходів потрібно оновити спільний сервер. ';const l=document.createElement('a');l.href=link('/demo')+'#actions';l.textContent='Відкрити робочий демоплан';note.append(l);note.setAttribute('role','status')}
     root.querySelector('dialog').showModal();
   }
 });
@@ -172,10 +172,10 @@ root.addEventListener('submit',async e=>{
       const response=await api('plan',payload);
       const latest=await api('state');
       lastState=latest;lastDashboard=JSON.stringify(latest);results(latest);
-      const saved=latest.proposals.some(p=>p.id===payload.id&&p.plan);
+      const saved=latest.proposals.find(p=>p.id===payload.id)?.plan;
       if(!saved)throw new Error('Сервер не підтвердив збереження. Спробуйте ще раз.');
       root.querySelector('dialog').close();
-      const notice=root.querySelector('#notice');if(notice)notice.textContent=response.existing?'Цей захід уже був у плані.':'Захід збережено в плані ✓';
+      const notice=root.querySelector('#notice');if(notice)notice.textContent=response.existing?'Цей захід уже був у плані.':(saved.action===payload.action.trim()&&saved.verify===payload.verify.trim()?'Захід збережено в плані ✓':'Захід додано, але спільний сервер зберіг типову рекомендацію замість вашого тексту. Щоб зберегти власне формулювання, відкрийте демоплан.');
       location.hash='plan';
     }
   }catch(err){if(form.id==='plan'){const error=form.querySelector('.planError');error.textContent=err.message+(err.status===400&&!info.manualMeasures?' Сервер потребує оновлення; перевірте демонстраційну панель.':'');error.setAttribute('role','alert')}else errorText(err)}
