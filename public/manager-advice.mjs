@@ -329,7 +329,36 @@ export function choosePracticeGuidance(practice){
     :'';
   return {...p,...recommendation,check:gaps+recommendation.check};
 }
+/**
+ * Participant-score summaries for the real management view only.
+ * Preserve the original category thresholds and the numeric result.
+ * Narrower, descriptive score bands make different intermediate results
+ * easier to interpret without inventing any high or low scores.
+ */
+export function describePracticeStatus(p){
+  if(!Number.isFinite(p?.score))return 'Ще недостатньо оцінок';
+  if(p.category==='split' && Number.isFinite(p.groups?.cadets) && Number.isFinite(p.groups?.teachers)){
+    return p.groups.cadets<p.groups.teachers
+      ?'Курсанти оцінюють нижче'
+      :p.groups.teachers<p.groups.cadets
+        ?'Викладачі оцінюють нижче'
+        :'Відмінність оцінок груп';
+  }
+  if(p.score<20)return 'Дуже низька оцінка';
+  if(p.score<30)return 'Суттєві прогалини';
+  if(p.score<40)return 'Потрібні першочергові зміни';
+  if(p.score<47)return 'Базові практики потребують розвитку';
+  if(p.score<54)return 'Часткове впровадження';
+  if(p.score<60)return 'Поступове зміцнення';
+  if(p.score<70)return 'Переважно стабільна практика';
+  if(p.score<80)return 'Стабільна з резервом розвитку';
+  if(p.score<90)return 'Високий рівень практики';
+  return 'Сильна усталена практика';
+}
 export function contextualizeDashboard(state){
-  return {...state,practices:state.practices.map(choosePracticeGuidance)};
+  return {...state,practices:state.practices.map(p=>({
+    ...choosePracticeGuidance(p),
+    label:describePracticeStatus(p)
+  }))};
 }
 export const adviceCatalog=allGuidance;
