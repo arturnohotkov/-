@@ -15,3 +15,7 @@ jobs:
       - run: node --check public/manager.mjs
       - run: node --check core/live.mjs
       - run: node --test checks/*.test.mjs
+      - name: Перевірити сумісність спільного API
+        run: |
+          node --input-type=module -e 'try {const r=await fetch("https://vektor-integrity-lab.clayblade5.chatgpt.site/api/v1/live-info",{signal:AbortSignal.timeout(9000)}); const data=await r.json(); console.log("Remote API status:",r.status,"manualMeasures:",Boolean(data.manualMeasures)); if(!data.manualMeasures)console.log("::warning::The hosted shared API does not yet support unrestricted management actions.") } catch(e){console.log("::warning::Remote shared API could not be verified:",e.message)}'
+
