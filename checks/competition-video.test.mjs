@@ -64,9 +64,33 @@ test('All public MP4 players use refreshed video assets and offer closed caption
  assert.match(workflow,/vorobtsi-intro\.uk\.vtt/);
  assert.match(script,/def write_captions/);
  const survey=ui.slice(ui.indexOf('function surveyIntro(){'),ui.indexOf('function question(){'));
- assert.match(survey,/vorobtsi-intro\.mp4\?v=3/);
- assert.match(survey,/vorobtsi-intro\.uk\.vtt\?v=3/);
- assert.match(page,/vorobtsi-intro\.mp4\?v=3/);
- assert.match(page,/vorobtsi-intro\.uk\.vtt\?v=3/);
+ assert.match(survey,/vorobtsi-intro\.mp4\?v=4/);
+ assert.match(survey,/vorobtsi-intro\.uk\.vtt\?v=4/);
+ assert.match(page,/vorobtsi-intro\.mp4\?v=4/);
+ assert.match(page,/vorobtsi-intro\.uk\.vtt\?v=4/);
  assert.match(page,/kind="captions"/);
+});
+
+test('Brand mark in ALL nine slide headers and closing emblem comes directly from official SVG',()=>{
+ const logo=readFileSync(new URL('../public/mark.svg',import.meta.url),'utf8');
+ assert.match(logo,/viewBox="0 0 48 48"/);
+ assert.match(logo,/M8 13h8l8 15 9-17h8L24 40z/);
+ assert.match(script,/def site_mark\(pixels=48, transparent=False\):/);
+ assert.match(script,/ROOT\/"public"\/"mark\.svg"/);
+ assert.match(script,/site_mark\(48\)/);
+ assert.match(script,/site_mark\(176,transparent=True\)/);
+ assert.doesNotMatch(script,/label\(d,\(78,48\),"В"/);
+ assert.doesNotMatch(script,/label\(d,\(915,245\),"В"/);
+});
+
+test('Logo-only publication keeps original AAC audio bit-identical and preserves original captions',()=>{
+ const patch=readFileSync(new URL('../tools/replace-video-logo-only.py',import.meta.url),'utf8');
+ const ci=readFileSync(new URL('../.github/workflows/patch-official-video-logo-once.yml',import.meta.url),'utf8');
+ assert.match(patch,/sha256/);
+ assert.match(patch,/old_hash==new_hash/);
+ assert.match(patch,/git|mark\.svg/);
+ assert.match(patch,/write_text\("".join/);
+ assert.match(ci,/git show origin\/gh-pages:vorobtsi-intro\.mp4/);
+ assert.match(ci,/git show origin\/gh-pages:vorobtsi-intro\.uk\.vtt/);
+ assert.doesNotMatch(ci,/edge-tts|voice-|Communicate/);
 });
