@@ -9,7 +9,15 @@ const output=resolve(process.argv[2]||'pages');
 const repo=process.env.GITHUB_REPOSITORY?.split('/')[1]||'vektor';
 if(!/^[\w.-]+$/.test(repo))throw Error('Invalid repository name');
 const base=repo.toLowerCase().endsWith('.github.io')?'':'/'+repo;
-const api='https://vektor-integrity-lab.clayblade5.chatgpt.site';
+// Keep the existing production endpoint unless an administrator explicitly opts into a migrated backend.
+const previousApi='https://vektor-integrity-lab.clayblade5.chatgpt.site';
+const configuredApi=(process.env.VECTOR_API_URL||'').trim();
+const parsedApi=new URL(configuredApi||previousApi);
+if(parsedApi.protocol!=='https:'||parsedApi.username||parsedApi.password||parsedApi.search||
+   parsedApi.hash||parsedApi.pathname!=='/'||parsedApi.port){
+  throw new Error('VECTOR_API_URL must be a HTTPS origin, with no path, credentials or query.');
+}
+const api=parsedApi.origin;
 const page=liveShell.replace('<head>',`<head><meta name="vektor-base" content="${base}"><meta name="vektor-api" content="${api}">`)
   .replace(/(href|src)="(\/[^"]*)"/g,(_,attr,path)=>attr+'="'+base+path+(['/demo','/manager','/survey'].includes(path)?'/':'')+'"');
 await mkdir(output,{recursive:true});
