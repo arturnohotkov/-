@@ -1,4 +1,5 @@
-import {sections,renderSection,managerCsv} from './manager.mjs?v=8';
+import {sections,renderSection,managerCsv} from './manager.mjs?v=10';
+import {saveLocalPlan,mergeLocalPlans,changeLocalStatus} from './manager-store.mjs?v=1';
 const root=document.querySelector('#room');
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const url=new URL(location.href);
@@ -7,9 +8,10 @@ const backend=document.querySelector('meta[name="vektor-api"]')?.content||'';
 const link=path=>base+path+(base&&path!=='/'?'/':'');
 let managerToken='',ballotToken='';
 const ballotKey='vektor-ballot:'+base+':'+backend;
+const planKey='vektor-manager-actions-v1:'+base+':'+backend;
 if(backend){try{ballotToken=localStorage.getItem(ballotKey)||''}catch{}}
 const route=url.pathname.slice(base.length).replace(/\/index\.html$/,'').replace(/\/$/,'');
-let info,step=0,reviewBack=0,selectedProposal='',variant='original',answers=[],group='',sending=false,shared=false,lastDashboard='',lastState=null,refreshing=false,started=false;
+let info,step=0,reviewBack=0,selectedProposal='',variant='original',answers=[],group='',sending=false,shared=false,lastDashboard='',lastState=null,rawManagerState=null,refreshing=false,started=false;
 async function api(name,body){
   const options=body===undefined?{cache:'no-store'}:{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)};
   if(backend){
@@ -98,9 +100,10 @@ async function refresh(){
   if(refreshing||!started||document.hidden)return;
   refreshing=true;
   try{
-    const s=await api('state');if(!started)return;
+    rawManagerState=await api('state');if(!started)return;
+    const s=mergeLocalPlans(rawManagerState,localStorage,planKey);
     const serialized=JSON.stringify(s);
-    if(serialized!==lastDashboard){results(s);lastState=s;lastDashboard=serialized}
+    if(serialized!==lastDashboard){lastState=s;lastDashboard=serialized;results(s)}
     document.querySelector('#sync').textContent='Оновлено о '+new Date().toLocaleTimeString('uk-UA')+' · автоматично кожні 5 с';
   }catch(e){if(!started)return;if(e.status===401)login();else document.querySelector('#sync').textContent='Зв’язок перервано. Наступна спроба через 5 с.'}
   finally{refreshing=false}
@@ -145,7 +148,7 @@ root.addEventListener('click',async e=>{
     const item=available.find(q=>q.id===select.value);
     form.elements.action.value=item.action;form.elements.verify.value=item.verify;
     const due=new Date();due.setDate(due.getDate()+30);form.elements.due.value=[due.getFullYear(),String(due.getMonth()+1).padStart(2,'0'),String(due.getDate()).padStart(2,'0')].join('-');
-    if(!info.manualMeasures){const note=form.querySelector('.planError');note.textContent='Для довільних заходів потрібно оновити спільний сервер. ';const l=document.createElement('a');l.href=link('/demo')+'#actions';l.textContent='Відкрити робочий демоплан';note.append(l);note.setAttribute('role','status')}
+    if(!info.manualMeasures){const note=form.querySelector('.planError');note.textContent='Поки сервер не оновлено, цей захід збережеться у вашому браузері. Інші пристрої його не бачитимуть.';note.setAttribute('role','status')}
     root.querySelector('dialog').showModal();
   }
 });
@@ -164,21 +167,26 @@ root.addEventListener('submit',async e=>{
     if(form.id==='login'){await api('login',{key:fields.get('key')});form.reset();manager();await refresh()}
     if(form.id==='plan'){
       const payload=Object.fromEntries(fields);
-      if(!info.manualMeasures){
-        const practice=lastState?.practices.find(p=>p.id===payload.id);
-        const eligible=practice&&(practice.votes>0||['priority','forming','split'].includes(practice.category)||lastState.weakest?.id===practice.id);
-        if(!eligible)throw Object.assign(new Error('Спільний сервер ще не оновлено для довільних заходів. Відкрийте «Демоприклад» і додайте захід у «Плані заходів».'),{status:409});
+      let resultText='';
+      if(info.manualMeasures){
+        const response=await api('plan',payload);
+        rawManagerState=await api('state');
+        const saved=rawManagerState.proposals.find(p=>p.id===payload.id)?.plan;
+        if(!saved)throw Error('Сервер не підтвердив збереження заходу.');
+        if(saved.action!==payload.action.trim()||saved.verify!==payload.verify.trim())throw Error('Сервер зберіг інше формулювання. Перевірте запис у плані.');
+        resultText=response.existing?'Цей захід уже був у спільному плані.':'Захід збережено на сервері ✓';
+      }else{
+        saveLocalPlan(localStorage,planKey,payload,lastState.practices);
+        resultText='Захід збережено в цьому браузері ✓ · для спільного збереження необхідне оновлення сервера.';
       }
-      const response=await api('plan',payload);
-      const latest=await api('state');
-      lastState=latest;lastDashboard=JSON.stringify(latest);results(latest);
-      const saved=latest.proposals.find(p=>p.id===payload.id)?.plan;
-      if(!saved)throw new Error('Сервер не підтвердив збереження. Спробуйте ще раз.');
+      lastState=mergeLocalPlans(rawManagerState||await api('state'),localStorage,planKey);
+      lastDashboard=JSON.stringify(lastState);
       root.querySelector('dialog').close();
-      const notice=root.querySelector('#notice');if(notice)notice.textContent=response.existing?'Цей захід уже був у плані.':(saved.action===payload.action.trim()&&saved.verify===payload.verify.trim()?'Захід збережено в плані ✓':'Захід додано, але спільний сервер зберіг типову рекомендацію замість вашого тексту. Щоб зберегти власне формулювання, відкрийте демоплан.');
       location.hash='plan';
+      results(lastState);
+      const notice=root.querySelector('#notice');if(notice){notice.textContent=resultText;notice.setAttribute('role','status')}
     }
-  }catch(err){if(form.id==='plan'){const error=form.querySelector('.planError');error.textContent=err.message+(err.status===400&&!info.manualMeasures?' Сервер потребує оновлення; перевірте демонстраційну панель.':'');error.setAttribute('role','alert')}else errorText(err)}
+  }catch(err){if(form.id==='plan'){const error=form.querySelector('.planError');error.textContent=err.message;error.setAttribute('role','alert')}else errorText(err)}
   finally{sending=false;if(button)button.disabled=false}
 });
 root.addEventListener('change',async e=>{
@@ -190,7 +198,18 @@ root.addEventListener('change',async e=>{
   if(el.id==='practice-filter'&&lastState){practiceFilter=el.value;results(lastState);root.querySelector('#practice-filter')?.focus()}
   if(el.dataset.status){
     el.disabled=true;
-    try{await api('status',{id:el.dataset.status,status:el.value});await refresh()}
+    try{
+      const local=lastState?.proposals.find(p=>p.id===el.dataset.status)?.plan?.localOnly;
+      if(local){
+        changeLocalStatus(localStorage,planKey,el.dataset.status,el.value);
+        lastState=mergeLocalPlans(rawManagerState,localStorage,planKey);
+        lastDashboard=JSON.stringify(lastState);results(lastState);
+        const notice=root.querySelector('#notice');if(notice){notice.textContent='Статус локального заходу збережено в браузері ✓';notice.setAttribute('role','status')}
+      }else{
+        await api('status',{id:el.dataset.status,status:el.value});
+        await refresh();
+      }
+    }
     catch(err){if(lastState)results(lastState);errorText(err)}
     finally{el.disabled=false}
   }
@@ -204,7 +223,7 @@ async function boot(){
   info=await api('info');
   if(route==='/survey'){surveyIntro();return}
   if(route==='/manager'){
-    try{const state=await api('state');manager();results(state);lastState=state;lastDashboard=JSON.stringify(state);document.querySelector('#sync').textContent='Поточні дані · автоматичне оновлення кожні 5 с'}
+    try{rawManagerState=await api('state');manager();const state=mergeLocalPlans(rawManagerState,localStorage,planKey);results(state);lastState=state;lastDashboard=JSON.stringify(state);document.querySelector('#sync').textContent='Поточні дані · автоматичне оновлення кожні 5 с'}
     catch(e){if(e.status===401)login();else throw e}
     setInterval(refresh,5000);document.addEventListener('visibilitychange',refresh);return
   }
