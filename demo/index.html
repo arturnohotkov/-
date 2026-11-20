@@ -121,6 +121,8 @@ function createMeasure(){
  if(!available.length){msg('Усі практики цього циклу вже мають заходи.');return}
  const q=available[0];
  show('Новий захід',`<form id="manualmeasure"><p>Створіть управлінське рішення та вкажіть строк його перевірки.</p><label>Практика<select name="questionId" id="manualquestion">${available.map(item=>`<option value="${esc(item.id)}">${esc(item.title)}</option>`).join('')}</select></label><label>Захід<textarea name="text" minlength="2" maxlength="320" required>${esc(q.action)}</textarea></label><label>Відповідальний підрозділ<select name="owner">${data.owners.map(x=>`<option>${esc(x)}</option>`).join('')}</select></label><label>Строк виконання<input type="date" name="due" required></label><button class="btn primary">Додати до плану</button></form>`);
+ const nextMonth=new Date();nextMonth.setDate(nextMonth.getDate()+30);
+ const f=dialog.querySelector('#manualmeasure');if(f)f.elements.due.value=[nextMonth.getFullYear(),String(nextMonth.getMonth()+1).padStart(2,'0'),String(nextMonth.getDate()).padStart(2,'0')].join('-');
 }
 function actions(){
  const c=cycle();const flagged=c.rows.map((r,i)=>({...r,i})).filter(r=>r.flag&&!data.measures.some(m=>m.cycle===c.id&&m.criterion===r.i&&!m.questionId));
@@ -281,7 +283,7 @@ document.addEventListener('submit',e=>{e.preventDefault();const f=e.target,fd=ne
   show('Дякуємо за участь',`<div class="success">${icon('check',28)}</div><p>Ваші відповіді додано до групових сум. Підсумки поточного циклу з’являться після його завершення.</p>${res.latest?`<h3>Попередній цикл · ${esc(res.latest.name)}</h3>${res.latest.rows.map(r=>`<div class="factrow"><span>${r.label}</span><b>${mini(r.groups?.[res.group])} б.</b></div>`).join('')}`:''}${btn('Готово','dismiss','primary')}`);
   if(data)await reload();else root.innerHTML=`<main class="standalone">${logo()}<h1>Анкету прийнято</h1><p>Дякуємо за участь в оцінюванні.</p></main>`;return
  }
- if(f.id==='manualmeasure'){const q=cycle().practices.find(q=>q.id===value('questionId'));if(!q)throw Error('Оберіть практику.');await api('measure',{cycle:cycle().id,criterion:q.component,questionId:q.id,text:value('text'),due:value('due'),owner:value('owner')});dialog.close();page='actions';location.hash='actions';await reload();msg('Захід додано до плану');return}
+ if(f.id==='manualmeasure'){const q=cycle().practices.find(q=>q.id===value('questionId'));if(!q)throw Error('Оберіть практику.');await api('measure',{cycle:cycle().id,criterion:q.component,questionId:q.id,text:value('text'),due:value('due'),owner:value('owner')});dialog.close();page='actions';location.hash='actions';await reload();if(!data.measures.some(m=>m.cycle===q.cycle||m.questionId===q.id)){throw Error('Захід не з’явився в плані. Повторіть дію.')}msg('Захід додано до плану');return}
   if(f.id==='adoptform'){await api('measure',{cycle:cycle().id,criterion:Number(f.dataset.i),questionId:f.dataset.question||undefined,text:value('text'),due:value('due'),owner:value('owner')});dialog.close();page='actions';location.hash='actions';await reload();msg('Захід додано до плану');return}
  if(f.id==='inputsform'){await api('inputs',{cycle:openCycle().id,expert:[0,1,2].map(i=>Number(value('e'+i))),facts:[0,1,2].map(i=>({a:Number(value('a'+i)),b:Number(value('b'+i))}))});dialog.close();await reload();msg('Показники збережено');return}
  if(f.id==='newcycle'){await api('cycle',{name:value('name'),k:Number(value('k'))});dialog.close();await reload();msg('Цикл відкрито')}
