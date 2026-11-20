@@ -204,3 +204,33 @@ test('Manually created management action is persisted with custom wording',async
   assert.equal(saved.due,payload.due);
   assert.equal((await manager('plan',payload)).body.existing,true);
 });
+
+test('Teacher with only strong answers can submit a development proposal visible in manager priorities',async()=>{
+  const {client}=instance();
+  const manager=client('https://example.github.io');
+  const teacher=client('https://example.github.io');
+  assert.equal((await manager('login',{key:'test-manager-key'})).status,200);
+  assert.equal((await teacher('start',{})).status,200);
+  const {questions}=(await teacher('info')).body;
+  const selected=questions.find(q=>q.id==='practice');
+  const response=await teacher('answer',{
+    group:'teachers',answers:Array(12).fill(4),proposal:selected.id,variant:'high'
+  });
+  assert.equal(response.status,200,JSON.stringify(response.body));
+  const state=(await manager('state')).body;
+  assert.equal(state.total,1);
+  const received=state.proposals.find(p=>p.id===selected.id);
+  assert.ok(received,'Positive teacher proposal is visible to manager');
+  assert.equal(received.votes,1);
+  assert.deepEqual(received.plan,null);
+  const result=state.practices.find(p=>p.id===selected.id);
+  assert.deepEqual(result.offered,[{mode:'high',action:selected.tips[4],votes:1}]);
+  const {renderSection}=await import('../public/manager.mjs');
+  const info=(await manager('info')).body;
+  assert.match(renderSection(state,info,'priorities'),/Пропозиція учасників · 1/);
+  assert.match(renderSection(state,info,'priorities'),/іншої групи/);
+  const receipt=await teacher('answer',{
+    group:'teachers',answers:Array(12).fill(4),proposal:selected.id,variant:'high'
+  });
+  assert.equal(receipt.body.existing,true);
+});
