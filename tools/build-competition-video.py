@@ -111,63 +111,193 @@ def font(size,bold=False):
 def rr(draw, rect, r, fill, outline=None, width=1):
     draw.rounded_rectangle(rect, radius=r,fill=fill,outline=outline,width=width)
 
+# The previous presentation used rich glass cards, lime accents and distinct
+# scenes. Bring those elements into the real narrated MP4 instead of repeating
+# a single static information card across all nine sections.
+def label(d, xy, text, size, color=(242,249,235), bold=False, spacing=None):
+    d.text(xy, text, font=font(size,bold), fill=color, spacing=spacing)
+
+def card(d, rect, fill=(21,53,41), border=(98,145,103), radius=22):
+    rr(d, rect, radius, fill, border, 2)
+
+def chip(d, xy, text, fill=(42,92,65), color=(212,246,174), width=None):
+    x,y=xy
+    f=font(16,True)
+    w=width or max(115,int(d.textlength(text,font=f))+35)
+    rr(d,(x,y,x+w,y+37),17,fill)
+    label(d,(x+17,y+8),text,16,color,True)
+    return w
+
+def draw_metric(d,x,y,value,name):
+    card(d,(x,y,x+191,y+125),(238,248,231),(238,248,231),17)
+    label(d,(x+21,y+13),value,47,(30,90,56),True)
+    label(d,(x+21,y+78),name,13,(69,96,75),True)
+
+def draw_visual(d,kind):
+    accent=(193,244,128)
+    white=(239,247,231)
+    dim=(183,212,186)
+    left=728
+    if kind==0:
+        # Hero from the original design: oversized Index motif + floating mini dashboard
+        card(d,(724,148,1190,567),(17,52,38),(94,144,104),24)
+        label(d,(757,171),"INTEGRITY  /  MANAGEMENT",15,accent,True)
+        label(d,(758,203),"03",142,accent,True)
+        label(d,(978,263),"складові",17,dim)
+        for i,(title,length) in enumerate((("Культура",298),("Система",235),("Підзвітність",265))):
+            y=376+i*54
+            label(d,(759,y),title,17,white,True)
+            rr(d,(881,y+5,1154,y+19),6,(44,78,60))
+            rr(d,(881,y+5,881+length*0.84,y+19),6,((118+i*17),198,107))
+    elif kind==1:
+        # Two distinct participant cards, not imaginary personal data.
+        card(d,(727,158,944,557),(237,248,231),(244,253,236),22)
+        card(d,(955,189,1186,530),(19,56,41),(100,160,111),22)
+        d.ellipse((780,210,883,313),fill=(79,144,99))
+        label(d,(812,228),"К",57,white,True)
+        label(d,(760,344),"Курсанти",28,(31,83,51),True)
+        label(d,(760,388),"Анонімні відповіді",14,(76,108,82))
+        d.ellipse((1013,235,1116,338),fill=(171,229,116))
+        label(d,(1046,252),"В",57,(21,59,36),True)
+        label(d,(980,370),"Викладачі",26,white,True)
+        label(d,(980,414),"Порівняння груп",15,dim)
+        chip(d,(810,504),"Одна анкета",(34,101,63))
+    elif kind==2:
+        # Mobile survey UI modeled on the site: question, radio choices, progress.
+        card(d,(768,122,1148,594),(230,244,230),(241,252,233),29)
+        rr(d,(891,133,1018,145),6,(57,107,77))
+        label(d,(803,165),"ЗАПИТАННЯ 04 / 12",15,(51,111,78),True)
+        rr(d,(803,202,1113,212),5,(191,217,193))
+        rr(d,(803,202,935,212),5,(52,136,75))
+        label(d,(803,233),"Як діяти, якщо",23,(28,66,47),True)
+        label(d,(803,264),"бракує інформації?",23,(28,66,47),True)
+        for j,t in enumerate(("Знайти чинне правило","Звернутися по пораду","Уточнити обставини")):
+            y=322+j*54
+            rr(d,(801,y,1114,y+44),12,(241,249,235) if j!=1 else (203,232,197),(167,205,176))
+            d.ellipse((817,y+11,838,y+32),outline=(40,128,71),width=3)
+            if j==1:d.ellipse((824,y+18,831,y+25),fill=(40,128,71))
+            label(d,(854,y+13),t,16,(34,76,51),True)
+        chip(d,(931,531),"ДАЛІ",(37,115,70),width=155)
+    elif kind==3:
+        # Consent/feedback diagram
+        card(d,(726,156,1192,550),(230,247,229),(250,252,241),23)
+        label(d,(761,183),"ВАША ПРОПОЗИЦІЯ",17,(45,115,68),True)
+        label(d,(760,232),"Уточнити доступ",27,(28,73,46),True)
+        label(d,(760,270),"до чинних правил",27,(28,73,46),True)
+        rr(d,(760,334,1152,404),14,(210,230,208))
+        rr(d,(777,354,808,384),7,(47,137,78))
+        label(d,(784,354),"✓",22,(250,250,238),True)
+        label(d,(825,355),"Передати керівникові",21,(31,83,51),True)
+        chip(d,(760,446),"ПРОПОЗИЦІЮ ПРИЙНЯТО",(33,103,65),width=344)
+    elif kind==4:
+        # Group comparison card — symbolic unlabelled bars rather than fake scores.
+        card(d,(725,148,1192,565),(231,244,228),(251,251,237),25)
+        label(d,(757,176),"ПОРІВНЯННЯ ГРУП",17,(34,94,61),True)
+        for i,(t,width,col) in enumerate((("Курсанти",210,(55,124,83)),("Викладачі",293,(142,198,96)))):
+            y=257+i*95
+            label(d,(756,y-5),t,21,(32,75,48),True)
+            rr(d,(759,y+34,1151,y+58),12,(198,220,198))
+            rr(d,(759,y+34,759+width,y+58),12,col)
+        label(d,(757,486),"ЗРІЗИ  •  ДИНАМІКА  •  РОЗБІЖНОСТІ",15,(63,106,79),True)
+        for i in range(6):
+            d.ellipse((761+i*28,518,770+i*28,527),fill=(67,126,87) if i==5 else (182,210,180))
+    elif kind==5:
+        # Actual range labels (not random buzzwords).
+        card(d,(726,137,1192,584),(16,52,37),(95,156,112),24)
+        label(d,(758,163),"ВІД ДАНИХ ДО ПРІОРИТЕТУ",16,accent,True)
+        for i,(tag,title,fill) in enumerate((
+            ("40–46","Потребують розвитку",(123,75,43)),
+            ("47–53","Часткове впровадження",(123,92,43)),
+            ("54–59","Поступове зміцнення",(64,99,55)),
+            ("60–79","Стабільна практика",(35,104,64)))):
+            y=213+i*82
+            rr(d,(754,y,1160,y+67),15,(29,70,49))
+            chip(d,(765,y+14),tag,fill,width=111)
+            label(d,(890,y+19),title,17,white,True)
+        label(d,(759,553),"Оцінка визначає зміст рекомендації",12,dim)
+    elif kind==6:
+        # Kanban-inspired management plan.
+        card(d,(724,154,1191,558),(233,246,228),(239,252,233),24)
+        label(d,(756,178),"УПРАВЛІНСЬКИЙ ЗАХІД",16,(37,105,66),True)
+        label(d,(754,218),"Оновити інструкцію",26,(26,75,46),True)
+        for i,(name,val) in enumerate((
+            ("Практика","Доступ до правил"),
+            ("Відповідальний","Навчальний відділ"),
+            ("Контроль","Строк і результат"))):
+            y=279+i*75
+            rr(d,(755,y,1157,y+62),12,(210,230,208))
+            label(d,(772,y+10),name,13,(71,105,76))
+            label(d,(772,y+31),val,16,(29,79,45),True)
+        chip(d,(937,514),"У РОБОТІ",(37,104,66),width=192)
+    elif kind==7:
+        # Chart and export — illustrative plot with no invented actual survey numbers.
+        card(d,(726,144,1191,571),(232,246,230),(241,250,235),23)
+        label(d,(755,170),"ЗВІТ  /  ОЦІНЮВАННЯ",17,(42,110,70),True)
+        label(d,(755,207),"Історія змін",26,(31,80,49),True)
+        for y in [308,368,427]:
+            d.line((771,y,1161,y),fill=(201,221,200),width=2)
+        coords=[(779,417),(845,387),(913,398),(981,341),(1052,350),(1141,297)]
+        d.line(coords,fill=(45,131,77),width=6,joint="curve")
+        for x,y in coords:d.ellipse((x-7,y-7,x+7,y+7),fill=(94,175,92),outline=(239,251,235),width=3)
+        chip(d,(755,472),"CSV",(36,105,71),width=115)
+        chip(d,(883,472),"PDF",(38,109,76),width=115)
+        chip(d,(1010,472),"ДИНАМІКА",(48,122,81),width=149)
+        label(d,(755,536),"СХЕМА ВІЗУАЛІЗАЦІЇ",13,(77,116,83))
+    else:
+        card(d,(731,145,1189,567),(18,53,39),(93,151,99),26)
+        d.ellipse((806,179,1115,488),outline=(101,180,98),width=5)
+        d.ellipse((841,213,1081,453),fill=(183,240,124))
+        label(d,(915,245),"В",124,(25,73,46),True)
+        label(d,(802,500),"КОМАНДА «ВОРОБЦІ»",18,accent,True)
+    return
+
 def render_slide(s,number):
-    im=Image.new("RGB",(WIDTH,HEIGHT))
+    # Premium editorial slide system inspired by the original animated web deck.
+    from PIL import ImageFilter
+    im=Image.new("RGB",(WIDTH,HEIGHT),(7,27,21))
     px=im.load()
-    # Deep-green wide gradient with visual texture and a light halo.
+    shift=number*43
     for y in range(HEIGHT):
         for x in range(WIDTH):
-            glow=max(0,1-math.hypot((x-1020)/900,(y-190)/620))
-            stripe=2 if x%92==0 else 0
-            px[x,y]=(int(8+glow*15)+stripe,int(30+glow*29)+stripe,int(25+glow*18)+stripe)
+            halo=max(0,1-math.hypot((x-(1070-shift))/880,(y-(195+shift//3))/600))
+            horizon=max(0,1-math.hypot((x-300)/1200,(y-730)/720))
+            px[x,y]=(int(7+halo*16+horizon*3),int(26+halo*31+horizon*8),int(21+halo*19+horizon*4))
     d=ImageDraw.Draw(im)
-    # Architectural lines and status rails.
-    for x in range(660,WIDTH,100):d.line((x,0,x,HEIGHT),fill=(32,67,51),width=1)
-    d.rounded_rectangle((45,38,1235,682),26,outline=(71,121,90),width=2)
-    d.rounded_rectangle((73,62,112,101),12,fill=(184,237,125))
-    d.text((85,65),"В",font=font(25,True),fill=(17,49,31))
-    d.text((129,64),"ВОРОБЦІ",font=font(25,True),fill=(247,252,233))
-    d.text((129,96),"ВЕКТОР ДОБРОЧЕСНОСТІ  •  ВІКНУ",font=font(12),fill=(166,206,176))
-    d.text((84,156),s["tag"],font=font(17,True),fill=(187,238,138))
-    # Keep title on the left and use large high-contrast type.
-    y=210
-    for ln in s["title"].split("\n"):
-        d.text((82,y),ln,font=font(52,True),fill=(246,251,235),stroke_width=0)
-        y+=68
-    # Wrap the subheading to the left column.
-    max_width=580
-    words=s["sub"].split(" ")
+    # Fine grid in the background and glowing organic orb.
+    for x in range(43,WIDTH,113):d.line((x,0,x,HEIGHT),fill=(26,56,43),width=1)
+    for y in range(72,HEIGHT,94):d.line((0,y,WIDTH,y),fill=(20,49,39),width=1)
+    d.ellipse((1010-number*9,34,1312-number*9,337),outline=(52,107,67),width=2)
+    d.ellipse((1085-number*6,106,1250-number*6,271),outline=(56,122,69),width=2)
+    # Masthead / brand treatment.
+    rr(d,(64,45,111,93),12,(192,242,124))
+    label(d,(78,48),"В",30,(17,53,35),True)
+    label(d,(127,48),"ВОРОБЦІ",26,(248,250,234),True)
+    label(d,(127,81),"ВЕКТОР ДОБРОЧЕСНОСТІ",12,(164,203,164),True)
+    rr(d,(1054,52,1201,89),19,(39,78,52))
+    label(d,(1071,61),f"СЦЕНА {number+1:02d} / 09",14,(212,245,167),True)
+    # 2-column hero, white/bright-lime brand title. Never copy old generic card.
+    label(d,(81,146),s["tag"],16,(199,238,133),True)
+    ty=202
+    chunks=s["title"].split("\n")
+    for i,t in enumerate(chunks):
+        label(d,(79,ty+i*68),t,49 if len(t)>23 else 54,
+              (190,241,125) if i==len(chunks)-1 else (248,251,237),True)
+    subfont=font(18)
     line=""
-    sy=y+12
-    for word in words:
+    sy=370
+    for word in s["sub"].split(" "):
         trial=(line+" "+word).strip()
-        if d.textbbox((0,0),trial,font=font(19))[2]>max_width and line:
-            d.text((84,sy),line,font=font(19),fill=(177,212,187));sy+=31;line=word
+        if d.textlength(trial,font=subfont)>580 and line:
+            label(d,(82,sy),line,18,(187,219,193))
+            sy+=29;line=word
         else:line=trial
-    if line:d.text((84,sy),line,font=font(19),fill=(177,212,187))
-    # Big explanatory card, not invented real institutional scores.
-    rr(d,(728,145,1198,575),26,(228,241,226))
-    d.rounded_rectangle((754,169,1052,204),16,fill=(211,230,205))
-    d.text((768,177),"INTEGRITY  •  ОГЛЯД",font=font(16,True),fill=(34,78,51))
-    metric=s["metric"]
-    size=84 if len(metric)<5 else 62
-    d.text((765,224),metric,font=font(size,True),fill=(38,91,58))
-    d.text((765,332),s["metric_label"],font=font(17,True),fill=(56,91,66))
-    d.line((763,374,1162,374),fill=(169,204,174),width=2)
-    for j,text in enumerate(s["lines"]):
-        cy=403+j*48
-        rr(d,(766,cy-3,790,cy+21),7,(52,118,77))
-        d.text((774,cy-6),"✓",font=font(17,True),fill=(240,250,236))
-        words=text
-        f=font(15)
-        while d.textbbox((0,0),words,font=f)[2]>355 and len(words)>4:
-            words=words[:-2]
-        if words!=text:words=words.rstrip()+"…"
-        d.text((800,cy),words,font=f,fill=(44,79,53))
-    # Dots and footer.
+    if line:label(d,(82,sy),line,18,(187,219,193))
+    # Follow original deck with expressive, *different* analytics visuals.
+    draw_visual(d,number)
+    d.line((79,616,1198,616),fill=(57,98,68),width=2)
     for j in range(len(SCENES)):
-        d.ellipse((82+j*27,628,91+j*27,637),fill=(184,235,125) if j==number else (65,109,77))
-    d.text((973,622),f"{number+1:02d} / {len(SCENES):02d}",font=font(18,True),fill=(189,226,191))
+        rr(d,(81+j*23,646,93+j*23,656),5,(187,235,126) if j==number else (63,109,71))
+    label(d,(1036,637),"ВІКНУ · 2026",14,(172,210,181),True)
     out=WORK/f"slide-{number:02}.png"
     im.save(out,optimize=True)
     return out
