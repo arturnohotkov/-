@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   seed:
-    if: github.event.head_commit.message == 'Run 24 survey responses: 12 cadets and 12 teachers'
+    if: "${{ github.event.head_commit.message == 'Run 24 survey responses: 12 cadets and 12 teachers' }}"
     runs-on: ubuntu-latest
     timeout-minutes: 9
     steps:
