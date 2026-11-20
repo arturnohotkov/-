@@ -26,3 +26,6 @@ caption,.trend figcaption{text-align:left;font-weight:700;padding:10px 0}.trend{
 .videoDemo{display:grid;grid-template-columns:1fr auto;align-items:center}.videoDemo video{display:block;grid-column:1/-1;grid-row:2;width:100%;height:auto;aspect-ratio:16/9;border-radius:10px;background:#17392e}.videoDemo>.btn{grid-row:1;grid-column:2}.insight select{margin-top:6px}@media(max-width:620px){.videoDemo{display:flex;align-items:stretch;flex-direction:column}.videoDemo>.btn{align-self:start}}
 
 .proposalChoice{margin-top:15px}.proposalChoice select{min-width:0;text-overflow:ellipsis}
+
+/* План заходів: форма власного управлінського рішення */
+.planTools{align-items:center;margin:0 0 18px;gap:14px;flex-wrap:wrap}form#plan{display:grid;gap:12px;min-width:min(520px,calc(100vw - 60px))}form#plan label{display:grid;gap:5px}form#plan select,form#plan input,form#plan textarea{width:100%;border:1px solid #b9cdbb;border-radius:9px;padding:10px;background:#fff}form#plan textarea{resize:vertical}form#plan .tools{margin-top:8px}
