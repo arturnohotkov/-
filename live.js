@@ -1,5 +1,5 @@
-import {sections,renderSection,managerCsv} from './manager.mjs?v=12';
-import {choosePracticeGuidance} from './manager-advice.mjs';
+import {sections,renderSection,managerCsv} from './manager.mjs?v=20';
+import {choosePracticeGuidance} from './manager-advice.mjs?v=20';
 import {saveLocalPlan,mergeLocalPlans,changeLocalStatus,getLocalPlans} from './manager-store.mjs?v=2';
 import {synchronizeManagerPlans} from './manager-sync.mjs?v=1';
 import {optionsFor} from './survey-wording.mjs?v=1';
