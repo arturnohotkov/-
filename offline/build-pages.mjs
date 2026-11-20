@@ -18,7 +18,7 @@ for(const section of ['','manager','survey']){
   await mkdir(directory,{recursive:true});
   await writeFile(join(directory,'index.html'),page);
 }
-for(const asset of ['live.js','live.css','mark.svg','manager.mjs','vorobtsi-qr.png','demo.mp4','demo-poster.jpg'])await copyFile(join(root,'public',asset),join(output,asset));
+for(const asset of ['live.js','live.css','mark.svg','manager.mjs','vorobtsi-qr.png','demo.mp4','demo-poster.jpg','presentation.html'])await copyFile(join(root,'public',asset),join(output,asset));
 if(process.env.GITHUB_REPOSITORY?.toLowerCase()==='arturnohotkov/-'){
   await copyFile(join(root,'public','vorobtsi-pages-qr.png'),join(output,'vorobtsi-qr.png'));
 }
