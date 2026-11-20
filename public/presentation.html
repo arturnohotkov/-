@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Воробці · Конкурсна презентація</title>
+<meta name="description" content="Інтерактивна відеопрезентація Integrity Management Dashboard з українським озвученням">
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,"Segoe UI",Arial,sans-serif;background:#071411;color:#f5f8eb}*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 85% 20%,#183e32 0%,transparent 40%),#071411;overflow-x:hidden}
+a{color:inherit}button{font:inherit;cursor:pointer;border:0}button:focus-visible,a:focus-visible{outline:3px solid #ceff76;outline-offset:4px}
+.top{z-index:5;position:relative;display:flex;align-items:center;justify-content:space-between;padding:19px clamp(20px,4vw,74px);gap:15px}
+.brand{font-weight:850;letter-spacing:-.06em;font-size:1.5rem}.brand i{color:#bbef77;font-style:normal}.minor{font-size:.72rem;font-weight:750;letter-spacing:.15em;text-transform:uppercase;color:#acbaae}.back{font-size:.85rem;text-decoration:none;border:1px solid #638176;padding:10px 17px;border-radius:30px}
+.stage{min-height:min(78vh,850px);position:relative;isolation:isolate;overflow:hidden;display:grid;align-items:center;padding:40px clamp(24px,7vw,135px) 110px;background:linear-gradient(115deg,#0a1e19,#103228 70%,#0a1c17)}
+.stage:before{content:"";position:absolute;width:62vw;height:62vw;right:-20vw;top:-20vw;border-radius:50%;background:radial-gradient(circle,#aeec8250 0%,transparent 64%);filter:blur(12px);z-index:-1;animation:drift 12s ease-in-out infinite alternate}
+.stage:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 109px,#ffffff06 110px);pointer-events:none;z-index:-1}
+@keyframes drift{to{transform:translate(-16vw,15vh) scale(1.15)}}@keyframes rise{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}@keyframes pulse{50%{box-shadow:0 0 0 18px #b9f07510}}
+.panel{max-width:1180px;width:100%;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,5vw,95px);align-items:center}
+.eyebrow{color:#ccf89a;font-weight:800;letter-spacing:.19em;text-transform:uppercase;font-size:.72rem;margin-bottom:22px}
+h1{font-size:clamp(2.7rem,5.8vw,6.4rem);line-height:1.02;letter-spacing:-.065em;margin:0;max-width:780px;font-weight:780}
+h1 em{font-style:normal;color:#c4f783}.lead{font-size:clamp(1rem,1.4vw,1.3rem);color:#c2d3c8;line-height:1.75;max-width:570px;margin-top:24px}
+.visual{min-height:360px;display:grid;place-items:center;position:relative}
+.mock{width:min(100%,535px);padding:23px;border:1px solid #95caa85e;border-radius:23px;background:linear-gradient(135deg,#f5f7ef,#dcebe1);color:#213d31;transform:perspective(850px) rotateY(-7deg) rotateX(3deg);box-shadow:20px 32px 80px #0008,0 0 70px #bbf09a19;animation:float 6s ease-in-out infinite alternate}
+@keyframes float{to{transform:perspective(850px) rotateY(1deg) rotateX(-1deg) translateY(-12px)}}
+.mocktop{display:flex;align-items:center;justify-content:space-between;font-size:.8rem;color:#577366;border-bottom:1px solid #c8d9ce;padding-bottom:13px}
+.mock strong{font-size:2.6rem;letter-spacing:-.06em}.mock h3{font-size:1rem;margin:20px 0 8px}.mock p{font-size:.82rem;color:#587266}
+.meter{height:11px;border-radius:12px;background:#c5d7cb;margin:15px 0 11px;overflow:hidden}.meter span{height:100%;display:block;background:linear-gradient(90deg,#2f785f,#9bd25e);border-radius:12px;animation:fill 3s both}@keyframes fill{from{width:0}}
+.pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:19px}.pill{background:#e0edd9;border-radius:20px;padding:6px 11px;font-size:.73rem;font-weight:700}
+.bigIndex{font-size:clamp(4rem,8vw,9rem);line-height:1;letter-spacing:-.08em;font-weight:800;color:#d1fa93;text-shadow:0 0 80px #adf07977}.bigIndex small{font-size:.23em;color:#d5e4ce;letter-spacing:0}
+.matrix{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:min(100%,540px)}
+.matrix div{padding:24px 10px;border:1px solid #84ad994f;background:#e7f4e70e;border-radius:15px;text-align:center}
+.matrix strong{display:block;font-size:clamp(1.5rem,3.8vw,3.1rem);color:#d4fa9a}.matrix span{display:block;color:#b8d1c4;font-size:.8rem;margin-top:10px}
+.flow{display:grid;gap:14px;width:min(100%,520px)}.flow div{border:1px solid #a9cf9a60;border-radius:14px;padding:18px 24px;background:#fafff00b;font-size:1.1rem}.flow b{color:#c6f58b;margin-right:16px}
+.controls{position:absolute;bottom:0;left:0;right:0;z-index:5;background:linear-gradient(0deg,#06120f 45%,transparent);padding:29px clamp(20px,4vw,74px) 18px}
+.bar{height:5px;background:#7a97862e;border-radius:6px;overflow:hidden}.bar span{display:block;height:100%;width:0;background:#c6f184;transition:width .3s linear}
+.controlsRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:17px}.control{background:#18382d;border:1px solid #5e7864;color:#f2f9ed;border-radius:30px;padding:10px 18px;min-height:43px}.control.main{background:#c5f38c;color:#153124;border-color:#c5f38c;font-weight:800}.control:hover{filter:brightness(1.15)}.counter{margin-left:auto;color:#aec9b5;font-size:.84rem;font-variant-numeric:tabular-nums}
+.caption{padding:17px clamp(20px,4vw,74px) 32px;font-size:.89rem;color:#b8cbbc;line-height:1.5;max-width:1120px}
+.caption b{color:#e8f8da}.foot{display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,4vw,74px) 26px;gap:18px;flex-wrap:wrap}
+.foot a{font-size:.88rem;text-underline-offset:4px}.message{color:#d5e6b7;font-size:.8rem;max-width:540px}
+@media(max-width:780px){.panel{grid-template-columns:1fr;gap:12px}.stage{padding-top:38px;min-height:850px;align-items:start}.visual{min-height:250px}.mock{transform:none;max-width:390px}.controls{padding-bottom:13px}.counter{margin-left:0}.matrix div{padding:14px 5px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style></head><body>
+<header class="top"><div class="brand">ВОРОБЦІ<i>.</i> <span class="minor">Integrity management</span></div><a class="back" href="./">← Повернутися до сайту</a></header>
+<main><section class="stage" aria-live="polite"><div class="panel" id="scene"></div><div class="controls"><div class="bar"><span id="progress"></span></div><div class="controlsRow"><button class="control main" id="play">▶ Розпочати презентацію</button><button class="control" id="prev" title="Попередня сцена">←</button><button class="control" id="next" title="Наступна сцена">→</button><button class="control" id="mute" aria-pressed="false">🔊 Озвучення: увімкнено</button><span class="counter" id="count"></span></div></div></section>
+<div class="caption"><b id="captionName"></b><span id="captionText"></span></div>
+<footer class="foot"><span class="message" id="voiceStatus">Натисніть «Розпочати». Презентація використовує український голос, якщо він встановлений у браузері.</span><a href="./demo.mp4" download="vorobtsi-demo.mp4">Завантажити попередню MP4-демонстрацію</a></footer></main>
+<script>
+const scenes=[
+{tag:'Конкурсне завдання № 3',title:'Доброчесність стає <em>вимірюваною.</em>',desc:'Воробці · ВІКНУ · Цифрова система оцінювання та підтримки управлінських рішень.',type:'index',index:'03',narr:'Доброчесність має бути не лише принципом, а й вимірюваним результатом. Команда Воробці представляє цифрову систему, що допомагає перетворити оцінювання на рішення керівника.',seconds:17},
+{tag:'01 / Виклик',title:'Не просто дані. <em>Підстави для дії.</em>',desc:'Розрізнені оцінки, неочевидні ризики та складність контролю результату — виклики, які вирішує наша платформа.',type:'flow',steps:['Сигнали та відповіді','Аналітична обробка','Перевірювані рішення'],narr:'Коли оцінювання проводять окремо від управлінських рішень, важливі сигнали можуть залишатися непоміченими. Ми об’єднали дані, аналітику й контроль виконання в одному цифровому просторі.',seconds:18},
+{tag:'02 / Анонімне опитування',title:'Голос кожного. <em>Без персональних даних.</em>',desc:'Курсанти та викладачі оцінюють практики у спільній анкеті. Поріг групових відповідей захищає анонімність.',type:'mock',metric:'12 + 3',label:'основних питань і ситуацій',value:85,narr:'Курсанти й викладачі проходять анкету без зазначення імен. Дванадцять запитань та три додаткові практичні ситуації дають змогу оцінити те, як правила працюють у реальному житті.',seconds:19},
+{tag:'03 / Діагностика',title:'Три складові <em>Integrity Index.</em>',desc:'Культура, система та підзвітність в одному інтегральному показнику з прозорою методикою розрахунку.',type:'matrix',values:['Культура','Система','Підзвітність'],narr:'Система оцінює три компоненти: культуру доброчесності, функціонування антикорупційної системи та підзвітність. Для кожного з них поєднуються опитування, експертні оцінки і документальні підтвердження.',seconds:19},
+{tag:'04 / Аналітична панель',title:'Побачити <em>динаміку та розриви.</em>',desc:'Порівняння групових оцінок, тенденції та підстави рекомендацій в одному інтерфейсі.',type:'mock',metric:'76,2',label:'Integrity Index · навчальний приклад',value:76.2,narr:'Керівник бачить динаміку показників і відмінності між оцінками курсантів та викладачів. За кожним висновком стоять конкретні дані, а не абстрактне формулювання.',seconds:19},
+{tag:'05 / Рішення',title:'Від рекомендації <em>до заходу.</em>',desc:'Власні управлінські рішення: практика, відповідальний підрозділ, строк, ознака виконання та статус.',type:'flow',steps:['Визначити захід','Призначити відповідального','Перевірити виконання'],narr:'Ключова перевага нашого рішення — можливість одразу створити захід у плані. Керівник обирає практику, формулює дію, призначає відповідального й строк, а потім відстежує виконання.',seconds:21},
+{tag:'06 / Контроль',title:'Не лише виконано. <em>А чи стало краще?</em>',desc:'Результати наступного циклу можна зіставити з базовими показниками для перевірки ефекту.',type:'matrix',values:['План','Реалізація','Повторна оцінка'],narr:'Після виконання заходу система дає змогу порівняти результати наступного циклу з початковою оцінкою. Так ми перевіряємо не лише факт виконання, а і його практичний вплив.',seconds:19},
+{tag:'07 / Звітність',title:'Прозорість. <em>Контроль. Результат.</em>',desc:'Звіти, таблиці CSV, друк PDF та історія управлінських рішень.',type:'mock',metric:'360°',label:'цикл управління доброчесністю',value:100,narr:'Керівник отримує структуровані звіти, може експортувати результати та зберігати історію дій. Усі етапи — від першого запитання до повторної перевірки — утворюють завершений цикл управління.',seconds:17},
+{tag:'Команда «Воробці» · ВІКНУ',title:'Від оцінювання <em>до довіри.</em>',desc:'Integrity Management Dashboard. Цифровий інструмент, що допомагає діяти на основі доказів.',type:'index',index:'✓',narr:'Воробці — це більше ніж опитувальник. Це інструмент, який перетворює голос людей та аналітичні показники на конкретні управлінські рішення. Доброчесність починається з дії.',seconds:17}
+];
+const $=id=>document.getElementById(id);
+let index=0,playing=false,muted=false,deadline=0,elapsed=0,frame=0,currentVoice=null;
+const synth=window.speechSynthesis;
+const escapeHTML=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const total=scenes.reduce((n,s)=>n+s.seconds,0);
+function visual(s){
+if(s.type==='index')return '<div class="bigIndex">'+escapeHTML(s.index)+'<small> / ВІКНУ</small></div>';
+if(s.type==='flow')return '<div class="flow">'+s.steps.map((v,i)=>'<div><b>0'+(i+1)+'</b>'+escapeHTML(v)+'</div>').join('')+'</div>';
+if(s.type==='matrix')return '<div class="matrix">'+s.values.map((v,i)=>'<div><strong>'+['01','02','03'][i]+'</strong><span>'+escapeHTML(v)+'</span></div>').join('')+'</div>';
+return '<div class="mock"><div class="mocktop"><b>ВОРОБЦІ · DASHBOARD</b><span>● Система доброчесності</span></div><h3>'+escapeHTML(s.label)+'</h3><strong>'+escapeHTML(s.metric)+'</strong><p>Аналітика, динаміка та контроль заходів</p><div class="meter"><span style="width:'+Number(s.value)+'%"></span></div><div class="pills"><span class="pill">Курсанти</span><span class="pill">Викладачі</span><span class="pill">Управлінські рішення</span></div></div>';
+}
+function speak(){
+if(!synth||muted||!playing)return;
+synth.cancel();
+const u=new SpeechSynthesisUtterance(scenes[index].narr);u.lang='uk-UA';u.rate=.94;u.pitch=1;u.volume=1;
+const voices=synth.getVoices();currentVoice=voices.find(v=>v.lang.toLowerCase()==='uk-ua')||voices.find(v=>v.lang.toLowerCase().startsWith('uk'));
+if(currentVoice){u.voice=currentVoice;$('voiceStatus').textContent='Український голос: '+currentVoice.name}
+else $('voiceStatus').textContent='Український голос у цьому браузері не знайдено. Текст диктора показано під відеопрезентацією.';
+u.onerror=()=>{$('voiceStatus').textContent='Озвучення недоступне на цьому пристрої. Скористайтеся підписами під сценами.'};
+synth.speak(u);
+}
+function render(){
+const s=scenes[index];$('scene').innerHTML='<div style="animation:rise .65s both"><div class="eyebrow">'+escapeHTML(s.tag)+'</div><h1>'+s.title+'</h1><p class="lead">'+escapeHTML(s.desc)+'</p></div><div class="visual" style="animation:rise .8s .15s both">'+visual(s)+'</div>';
+$('captionName').textContent='Сцена '+(index+1)+'. ';$('captionText').textContent=s.narr;
+$('count').textContent=(index+1)+' / '+scenes.length+' · '+Math.floor(total/60)+':'+String(total%60).padStart(2,'0')+' загалом';
+$('play').textContent=playing?'Ⅱ Пауза':'▶ '+(elapsed?'Продовжити':'Розпочати презентацію');
+$('mute').textContent=muted?'🔇 Озвучення: вимкнено':'🔊 Озвучення: увімкнено';
+$('mute').setAttribute('aria-pressed',String(muted));
+progress();if(playing)speak();
+}
+function progress(){
+const before=scenes.slice(0,index).reduce((n,s)=>n+s.seconds,0);
+$('progress').style.width=((before+elapsed)/total*100).toFixed(2)+'%';
+}
+function tick(now){
+if(!playing)return;
+if(!deadline)deadline=now;
+const dt=Math.min(.2,(now-deadline)/1000);deadline=now;elapsed+=Math.max(0,dt);
+if(elapsed>=scenes[index].seconds){
+if(index===scenes.length-1){playing=false;elapsed=scenes[index].seconds;synth?.cancel();render();return}
+index++;elapsed=0;render();
+}
+progress();frame=requestAnimationFrame(tick);
+}
+function setPlaying(v){playing=v;synth?.cancel();cancelAnimationFrame(frame);deadline=0;render();if(v)frame=requestAnimationFrame(tick)}
+function move(n){index=Math.max(0,Math.min(scenes.length-1,index+n));elapsed=0;deadline=0;synth?.cancel();render()}
+$('play').addEventListener('click',()=>{if(!playing&&index===scenes.length-1&&elapsed>=scenes[index].seconds){index=0;elapsed=0}setPlaying(!playing)});
+$('prev').addEventListener('click',()=>move(-1));$('next').addEventListener('click',()=>move(1));
+$('mute').addEventListener('click',()=>{muted=!muted;synth?.cancel();render()});
+document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;if(e.key==='ArrowRight')move(1);if(e.key==='ArrowLeft')move(-1);if(e.key===' '){e.preventDefault();setPlaying(!playing)}});
+synth?.addEventListener?.('voiceschanged',()=>{if(!playing)$('voiceStatus').textContent=synth.getVoices().some(v=>v.lang.toLowerCase().startsWith('uk'))?'Український голос готовий до озвучення.':'Для озвучення українською встановіть український голос у системі.'});
+render();
+</script></body></html>
