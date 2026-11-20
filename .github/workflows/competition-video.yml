@@ -37,6 +37,7 @@ jobs:
         run: |
           test -s rendered-video/vorobtsi-intro.mp4
           test -s rendered-video/vorobtsi-intro-poster.jpg
+          test -s rendered-video/vorobtsi-intro.uk.vtt
           ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 rendered-video/vorobtsi-intro.mp4 | grep -q aac
           ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 rendered-video/vorobtsi-intro.mp4 | grep -q h264
           du -h rendered-video/vorobtsi-intro.mp4
@@ -48,8 +49,9 @@ jobs:
           git worktree add -B gh-pages "$RUNNER_TEMP/gh-video-site" origin/gh-pages
           cp rendered-video/vorobtsi-intro.mp4 "$RUNNER_TEMP/gh-video-site/vorobtsi-intro.mp4"
           cp rendered-video/vorobtsi-intro-poster.jpg "$RUNNER_TEMP/gh-video-site/vorobtsi-intro-poster.jpg"
+          cp rendered-video/vorobtsi-intro.uk.vtt "$RUNNER_TEMP/gh-video-site/vorobtsi-intro.uk.vtt"
           git -C "$RUNNER_TEMP/gh-video-site" config user.name 'github-actions[bot]'
           git -C "$RUNNER_TEMP/gh-video-site" config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git -C "$RUNNER_TEMP/gh-video-site" add -f vorobtsi-intro.mp4 vorobtsi-intro-poster.jpg
+          git -C "$RUNNER_TEMP/gh-video-site" add -f vorobtsi-intro.mp4 vorobtsi-intro-poster.jpg vorobtsi-intro.uk.vtt
           git -C "$RUNNER_TEMP/gh-video-site" commit -m "Publish human-voiced Ukrainian competition intro video"
           git -C "$RUNNER_TEMP/gh-video-site" push origin HEAD:gh-pages
