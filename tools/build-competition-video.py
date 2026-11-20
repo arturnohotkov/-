@@ -302,48 +302,14 @@ def render_slide(s,number):
     im.save(out,optimize=True)
     return out
 
-# The spoken script is independent from the visually displayed text. We use a
-# Ukrainian stress dictionary (2.9m forms) plus exact proper-name overrides.
-# U+0301 combines with the stressed vowel; it is not shown on the video.
-def prepare_spoken_text(raw, stressify):
-    import re
-    # English dashboard title and acronyms tend to switch the voice into
-    # unnatural English phonetics. Read their Ukrainian meaning instead.
-    text=raw.replace("Integrity Management Dashboard","панель управління доброчесністю")
-    text=text.replace("ВІКНУ","військового інституту")
-    marked=stressify(text)
-    accents={
-        "воробці":"воробці́",
-        "доброчесність":"доброче́сність",
-        "доброчесності":"доброче́сності",
-        "оцінювання":"оцінюва́ння",
-        "оцінюванні":"оцінюва́нні",
-        "заходи":"за́ходи",
-        "заходів":"за́ходів",
-        "анкета":"анке́та",
-        "анкету":"анке́ту"
-    }
-    def override(match):
-        token=match.group(0)
-        plain=token.replace("\u0301","")
-        replacement=accents.get(plain.casefold())
-        if replacement:
-            return replacement[0].upper()+replacement[1:] if plain[0].isupper() else replacement
-        return token
-    marked=re.sub(r"[А-Яа-яІіЇїЄєҐґ\u0301]+",override,marked)
-    return marked
-
-async def make_voice(s,filename,stressify):
+# Restore the original, natural Ukrainian neural narration used in the first MP4.
+# No combining accent marks, dictionary substitutions, or word-by-word stress.
+async def make_voice(s,filename):
     import edge_tts
     last_error=None
-    spoken=prepare_spoken_text(s["narr"],stressify)
-    # Accent notation is for speech synthesis only. A text transcript stays
-    # without diacritics for ordinary reading and subtitle accessibility.
-    if "\u0301" not in spoken:
-        raise RuntimeError("Stress dictionary did not accent any words")
     for attempt in range(4):
         try:
-            await edge_tts.Communicate(text=spoken,voice=VOICE,rate="-2%",pitch="+0Hz").save(str(filename))
+            await edge_tts.Communicate(text=s["narr"],voice=VOICE,rate="-3%",pitch="-2Hz").save(str(filename))
             if filename.stat().st_size<3000:raise RuntimeError("Audio is unexpectedly short")
             return
         except Exception as e:
@@ -383,15 +349,6 @@ def write_captions(path, durations):
     path.write_text("\n".join(cues),encoding="utf8")
 
 async def main():
-    # The lightweight dictionary avoids a 500 MB NLP-model download on each
-    # GitHub Actions run, while covering all unambiguous word forms.
-    from ukrainian_word_stress import Stressifier, StressSymbol, Disambiguation
-    stressify=Stressifier(stress_symbol=StressSymbol.CombiningAcuteAccent,
-                        disambiguation=Disambiguation.Dictionary)
-    sample=prepare_spoken_text("Доброчесність починається з дії. Воробці. Управлінські заходи.",stressify)
-    print("UKRAINIAN STRESS CHECK:",sample,flush=True)
-    if "доброче́сність" not in sample.lower() or "воробці́" not in sample.lower():
-        raise RuntimeError("Required Ukrainian stress overrides were not applied")
     for tool in ["ffmpeg","ffprobe"]:
         if not shutil.which(tool):raise RuntimeError(tool+" unavailable")
     if not Path(FONT).exists():raise RuntimeError("DejaVu font not installed on runner")
@@ -402,7 +359,7 @@ async def main():
         path=render_slide(s,i)
         audio=WORK/f"voice-{i:02}.mp3"
         print(f"Creating Ukrainian neural narration {i+1}/{len(SCENES)}...",flush=True)
-        await make_voice(s,audio,stressify)
+        await make_voice(s,audio)
         duration=ffprobe(audio)+1.25
         durations.append(duration)
         movie=WORK/f"clip-{i:02}.mp4"
