@@ -1,7 +1,7 @@
 /**
  * One-off participant-flow check against the live shared questionnaire.
  * Exactly 12 cadet and 12 teacher submissions, with independently randomized
- * valid answers. Intended for a user-requested pilot run only.
+ * valid answers. Intended for one user-requested pilot run only.
  *
  * CAUTION: these submissions enter the normal shared counts. Do not rerun.
  */
