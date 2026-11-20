@@ -15,5 +15,5 @@ test('Manager Save uses form HTML id attribute, not a named field that shadows f
 
 test('Published HTML loads a fresh manager JS version',()=>{
  const shell=readFileSync(new URL('../core/live-shell.mjs',import.meta.url),'utf8');
- assert.match(shell,/\/live\.js\?v=20/);
+ assert.match(shell,/\/live\.js\?v=21/);
 });
