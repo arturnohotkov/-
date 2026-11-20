@@ -26,7 +26,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg fonts-dejavu-core
-          python -m pip install --quiet 'edge-tts>=7,<9' 'Pillow>=11,<13'
+          python -m pip install --quiet 'edge-tts>=7,<9' 'Pillow>=11,<13' 'CairoSVG>=2.7,<3'
       - name: Створити дев'ять сцен і український нейромережевий голос
         run: python tools/build-competition-video.py
         env:
