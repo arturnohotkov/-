@@ -303,7 +303,7 @@ def render_slide(s,number):
     return out
 
 # Restore the original, natural Ukrainian neural narration used in the first MP4.
-# No combining accent marks, dictionary substitutions, or word-by-word stress.
+# No combining accent marks, dictionary substitutions, or word-by-word stress. Restore the initial voice cadence verbatim.
 async def make_voice(s,filename):
     import edge_tts
     last_error=None
