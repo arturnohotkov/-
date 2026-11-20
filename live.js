@@ -157,15 +157,15 @@ root.addEventListener('submit',async e=>{
   const form=e.target,fields=new FormData(form),button=e.submitter;
   sending=true;if(button)button.disabled=true;
   try{
-    if(form.id==='start'){group=fields.get('group');const r=await api('start',{});if(r.submitted)receipt(true);else{step=0;answers=Array(info.questions.length).fill(null);shared=false;selectedProposal='';variant='original';question()}}
-    if(form.id==='question'){answers[step]=Number(fields.get('choice'));reviewBack=step;step++;shared=false;selectedProposal='';variant='original';if(step===info.questions.length)review();else question()}
-    if(form.id==='send'){
+    if(form.getAttribute('id')==='start'){group=fields.get('group');const r=await api('start',{});if(r.submitted)receipt(true);else{step=0;answers=Array(info.questions.length).fill(null);shared=false;selectedProposal='';variant='original';question()}}
+    if(form.getAttribute('id')==='question'){answers[step]=Number(fields.get('choice'));reviewBack=step;step++;shared=false;selectedProposal='';variant='original';if(step===info.questions.length)review();else question()}
+    if(form.getAttribute('id')==='send'){
       shared=fields.has('share');const q=suggested();
       const result=await api('answer',{answers:answers.map(v=>v===5?null:v),group,proposal:shared&&q?q.id:null,variant:shared&&q?variant:null});
       receipt(!!result.existing);answers=[];
     }
-    if(form.id==='login'){await api('login',{key:fields.get('key')});form.reset();manager();await refresh()}
-    if(form.id==='plan'){
+    if(form.getAttribute('id')==='login'){await api('login',{key:fields.get('key')});form.reset();manager();await refresh()}
+    if(form.getAttribute('id')==='plan'){
       const payload=Object.fromEntries(fields);
       let resultText='';
       if(info.manualMeasures){
@@ -186,7 +186,7 @@ root.addEventListener('submit',async e=>{
       results(lastState);
       const notice=root.querySelector('#notice');if(notice){notice.textContent=resultText;notice.setAttribute('role','status')}
     }
-  }catch(err){if(form.id==='plan'){const error=form.querySelector('.planError');error.textContent=err.message;error.setAttribute('role','alert')}else errorText(err)}
+  }catch(err){if(form.getAttribute('id')==='plan'){const error=form.querySelector('.planError');error.textContent=err.message;error.setAttribute('role','alert')}else errorText(err)}
   finally{sending=false;if(button)button.disabled=false}
 });
 root.addEventListener('change',async e=>{
