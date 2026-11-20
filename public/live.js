@@ -1,5 +1,6 @@
 import {sections,renderSection,managerCsv} from './manager.mjs?v=10';
-import {saveLocalPlan,mergeLocalPlans,changeLocalStatus} from './manager-store.mjs?v=1';
+import {saveLocalPlan,mergeLocalPlans,changeLocalStatus,getLocalPlans} from './manager-store.mjs?v=2';
+import {synchronizeManagerPlans} from './manager-sync.mjs?v=1';
 import {optionsFor} from './survey-wording.mjs?v=1';
 import {proposalCandidates,proposalVariant,variantLabels,improvement,surveySummary} from './survey-advice.mjs?v=1';
 const root=document.querySelector('#room');
@@ -13,7 +14,7 @@ const ballotKey='vektor-ballot:'+base+':'+backend;
 const planKey='vektor-manager-actions-v1:'+base+':'+backend;
 if(backend){try{ballotToken=localStorage.getItem(ballotKey)||''}catch{}}
 const route=url.pathname.slice(base.length).replace(/\/index\.html$/,'').replace(/\/$/,'');
-let info,step=0,reviewBack=0,selectedProposal='',variant='auto',answers=[],group='',sending=false,shared=false,lastDashboard='',lastState=null,rawManagerState=null,refreshing=false,started=false;
+let info,step=0,reviewBack=0,selectedProposal='',variant='auto',answers=[],group='',sending=false,shared=false,lastDashboard='',lastState=null,rawManagerState=null,refreshing=false,started=false,syncingPlans=false,lastSyncCheck=0;
 async function api(name,body){
   const options=body===undefined?{cache:'no-store'}:{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)};
   if(backend){
@@ -30,6 +31,47 @@ async function api(name,body){
   }
   if(name==='logout')managerToken='';
   return data;
+}
+function managerState(remote){
+  return {...mergeLocalPlans(remote,localStorage,planKey),serverManualMeasures:!!info?.manualMeasures};
+}
+async function synchronizePlans(showResult=false){
+  if(syncingPlans||!started)return;
+  syncingPlans=true;lastSyncCheck=Date.now();
+  const notice=root.querySelector('#notice');
+  try{
+    // Check the current hosted backend, not a hard-coded flag from GitHub.
+    info=await api('info');
+    if(!info.manualMeasures){
+      if(showResult&&notice){notice.textContent='Спільний сервер поки використовує стару версію. Локальні заходи збережені; синхронізація стане доступною після його оновлення.';notice.setAttribute('role','status')}
+      return;
+    }
+    const unsent=Object.keys(getLocalPlans(localStorage,planKey)).length;
+    if(!unsent){
+      if(showResult&&notice){notice.textContent='Локальних заходів для перенесення немає. Спільний план доступний з різних пристроїв після входу.';notice.setAttribute('role','status')}
+      return;
+    }
+    const progress=root.querySelector('#sync');
+    if(progress)progress.textContent='Синхронізуємо '+unsent+' локальних заходів зі спільним сервером…';
+    const transferred=await synchronizeManagerPlans({api,storage:localStorage,key:planKey,initialState:rawManagerState});
+    rawManagerState=await api('state');
+    const message=[];
+    if(transferred.uploaded.length)message.push('Перенесено на сервер: '+transferred.uploaded.length+'.');
+    if(transferred.matched.length)message.push('Підтверджено раніше перенесені: '+transferred.matched.length+'.');
+    if(transferred.conflicts.length)message.push('Потребують перевірки через розбіжності: '+transferred.conflicts.length+'.');
+    if(transferred.failed.length)message.push('Не вдалося перенести: '+transferred.failed.length+'.');
+    if(transferred.remaining)message.push('Залишено в браузері: '+transferred.remaining+' (жодного запису не втрачено).');
+    if(!message.length)message.push('Спільний план актуальний.');
+    if(notice){notice.textContent=message.join(' ');notice.setAttribute('role',transferred.conflicts.length||transferred.failed.length?'alert':'status')}
+  }catch(err){
+    if(notice){notice.textContent='Синхронізація не завершилася: '+(err.message||'Помилка з’єднання')+'. Локальні записи збережені.';notice.setAttribute('role','alert')}
+  }finally{
+    syncingPlans=false;
+    if(rawManagerState&&started){
+      const state=managerState(rawManagerState);
+      lastDashboard=JSON.stringify(state);lastState=state;results(state);
+    }
+  }
 }
 function errorText(e){
   let target=document.querySelector('#notice');
@@ -114,20 +156,22 @@ function downloadCsv(){
   setTimeout(()=>URL.revokeObjectURL(objectUrl),1000);
 }
 async function refresh(){
-  if(refreshing||!started||document.hidden)return;
+  if(refreshing||syncingPlans||!started||document.hidden)return;
   refreshing=true;
   try{
     rawManagerState=await api('state');if(!started)return;
-    const s=mergeLocalPlans(rawManagerState,localStorage,planKey);
+    const s=managerState(rawManagerState);
     const serialized=JSON.stringify(s);
     if(serialized!==lastDashboard){lastState=s;lastDashboard=serialized;results(s)}
     document.querySelector('#sync').textContent='Оновлено о '+new Date().toLocaleTimeString('uk-UA')+' · автоматично кожні 5 с';
+    if(lastState?.pendingLocalCount&&Date.now()-lastSyncCheck>60000)void synchronizePlans(false);
   }catch(e){if(!started)return;if(e.status===401)login();else document.querySelector('#sync').textContent='Зв’язок перервано. Наступна спроба через 5 с.'}
   finally{refreshing=false}
 }
 root.addEventListener('click',async e=>{
   const button=e.target.closest('button');if(!button)return;
   const action=button.dataset.action;
+  if(action==='sync-plans'){await synchronizePlans(true);return}
   if(action==='print')window.print();
   if(action==='csv'&&lastState)downloadCsv();
   if(action==='back'){
@@ -194,7 +238,7 @@ root.addEventListener('submit',async e=>{
       const result=await api('answer',{answers:answers.map(v=>v===5?null:v),group,proposal:shared&&q?q.id:null,variant:shared&&q?submittedVariant:null});
       receipt(!!result.existing);answers=[];
     }
-    if(form.getAttribute('id')==='login'){await api('login',{key:fields.get('key')});form.reset();manager();await refresh()}
+    if(form.getAttribute('id')==='login'){await api('login',{key:fields.get('key')});form.reset();manager();await refresh();await synchronizePlans(false)}
     if(form.getAttribute('id')==='plan'){
       const payload=Object.fromEntries(fields);
       let resultText='';
@@ -209,7 +253,7 @@ root.addEventListener('submit',async e=>{
         saveLocalPlan(localStorage,planKey,payload,lastState.practices);
         resultText='Захід збережено в цьому браузері ✓ · для спільного збереження необхідне оновлення сервера.';
       }
-      lastState=mergeLocalPlans(rawManagerState||await api('state'),localStorage,planKey);
+      lastState=managerState(rawManagerState||await api('state'));
       lastDashboard=JSON.stringify(lastState);
       root.querySelector('dialog').close();
       location.hash='plan';
@@ -237,7 +281,7 @@ root.addEventListener('change',async e=>{
       const local=lastState?.proposals.find(p=>p.id===el.dataset.status)?.plan?.localOnly;
       if(local){
         changeLocalStatus(localStorage,planKey,el.dataset.status,el.value);
-        lastState=mergeLocalPlans(rawManagerState,localStorage,planKey);
+        lastState=managerState(rawManagerState);
         lastDashboard=JSON.stringify(lastState);results(lastState);
         const notice=root.querySelector('#notice');if(notice){notice.textContent='Статус локального заходу збережено в браузері ✓';notice.setAttribute('role','status')}
       }else{
@@ -258,7 +302,7 @@ async function boot(){
   info=await api('info');
   if(route==='/survey'){surveyIntro();return}
   if(route==='/manager'){
-    try{rawManagerState=await api('state');manager();const state=mergeLocalPlans(rawManagerState,localStorage,planKey);results(state);lastState=state;lastDashboard=JSON.stringify(state);document.querySelector('#sync').textContent='Поточні дані · автоматичне оновлення кожні 5 с'}
+    try{rawManagerState=await api('state');manager();const state=managerState(rawManagerState);results(state);lastState=state;lastDashboard=JSON.stringify(state);document.querySelector('#sync').textContent='Поточні дані · автоматичне оновлення кожні 5 с';await synchronizePlans(false)}
     catch(e){if(e.status===401)login();else throw e}
     setInterval(refresh,5000);document.addEventListener('visibilitychange',refresh);return
   }
