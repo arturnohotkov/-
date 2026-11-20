@@ -1,3 +1,4 @@
+import {contextualizeDashboard} from './manager-advice.mjs';
 export const sections = {
   overview:'Огляд', priorities:'Пріоритети', questions:'Запитання',
   history:'Динаміка', plan:'План заходів', report:'Звіт'
@@ -108,9 +109,11 @@ function report(s){
 }
 const views={overview,priorities:priorityView,questions:questionView,history:historyView,plan:planView,report};
 export function renderSection(s,info,section,filter='all'){
-  return (views[section]??overview)(s,info,filter);
+  const tailored=contextualizeDashboard(s);
+  return (views[section]??overview)(tailored,info,filter);
 }
 export function managerCsv(s,info){
+  s=contextualizeDashboard(s);
   const rows=[['Складова','Практика','Бал курсантів','Кількість відповідей курсантів у балі','Бал викладачів','Кількість відповідей викладачів у балі','Середній бал','Висновок','Підтримали пропозицію','Що перевірити','Рекомендована дія','Ознака виконання','Відповідальний','Строк','Статус','Бал архівної категорії «Працівники»','Кількість врахованих архівних відповідей','Прийнята дія','Місце збереження']];
   for(const p of s.practices){
     const plan=inPlan(s,p.id);
