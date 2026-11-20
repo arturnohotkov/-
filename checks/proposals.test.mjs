@@ -43,7 +43,7 @@ test('Even without sufficient knowledge a participant can select a topic to clar
   assert.ok(ranked.every(row=>!row.q.optional));
   assert.equal(proposalVariant(ranked[0].score),'mid');
   assert.match(improvement(ranked[0].q,5).heading,/оцінити/);
-  assert.match(surveySummary(liveQuestions,unknown),/недостатньо/);
+  assert.match(surveySummary(liveQuestions,unknown),/не було достатньо/);
 });
 
 test('Survey opt-in is presented in both teacher and cadet flows, independently of score',()=>{
