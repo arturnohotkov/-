@@ -38,8 +38,7 @@ function advice(p){
 }
 function planButton(s,p){
   if(inPlan(s,p.id))return '<a class="btn" href="#plan">Відкрити захід у плані</a>';
-  if(concern(p)||p.votes||(p.score!==null&&p.score<80&&s.weakest?.id===p.id))return `<button class="btn dark" data-plan="${esc(p.id)}">Додати до плану</button>`;
-  return '';
+  return `<button type="button" class="btn dark" data-plan="${esc(p.id)}">Додати до плану</button>`;
 }
 function recommendation(s,p,info){
   return `<article class="card practice"><div class="practiceHead"><span class="overline">${esc(info.criteria[p.component])}</span>${badge(p)}</div><h3>${esc(p.title)}</h3><p>${why(p)}</p>${evidence(p)}${advice(p)}<div class="tools">${planButton(s,p)}${p.votes?`<p><b>Пропозиція учасників · ${p.votes}</b><br>${(p.offered||[]).map(row=>esc(row.action)+' · '+row.votes).join('<br>')}</p>`:''}</div></article>`;
@@ -73,7 +72,7 @@ function priorityView(s,info){
 function questionView(s,info,filter){
   const rows=s.practices.filter(p=>filter==='all'||String(p.component)===filter);
   return heading('Розбір запитань','Розгорніть потрібну тему, щоб побачити формулювання запитання, бали кожної групи та спосіб перевірки.')+
-    `<label class="filter">Складова<select id="practice-filter">${[['all','Усі складові'],...info.criteria.map((c,i)=>[String(i),c])].map(([value,label])=>`<option value="${value}" ${filter===value?'selected':''}>${esc(label)}</option>`).join('')}</select></label><div class="questionList">${rows.map(p=>`<details data-question="${esc(p.id)}"><summary><span><small>${esc(info.criteria[p.component])}${p.optional?' · Ситуація':p.anchor?' · Опорне запитання':''}</small><b>${esc(p.title)}</b></span>${badge(p)}<strong>${number(p.score)}</strong></summary><div class="detailBody"><p class="wording">${esc(info.questions.find(q=>q.id===p.id)?.question)}</p><p>${why(p)}</p>${evidence(p)}${p.legacy?`<p class="hint">Архівна категорія «Працівники» · ${number(p.legacy.score)} зі 100 (${p.legacy.n} відповідей). Окремо від викладачів.</p>`:''}${advice(p)}${planButton(s,p)}</div></details>`).join('')}</div><p class="hint">Бали наведено зі 100. Коли доступні обидві групи, підсумковий бал є середнім їхніх двох оцінок. «Не можу оцінити» не входить у бал.</p>`;
+    `<label class="filter">Складова<select id="practice-filter">${[['all','Усі складові'],...info.criteria.map((c,i)=>[String(i),c])].map(([value,label])=>`<option value="${value}" ${filter===value?'selected':''}>${esc(label)}</option>`).join('')}</select></label><div class="questionList">${rows.map(p=>`<details data-question="${esc(p.id)}"><summary><span><small>${esc(info.criteria[p.component])}${p.optional?' · Ситуація':p.anchor?' · Опорне запитання':''}</small><b>${esc(p.title)}</b></span>${badge(p)}<strong>${number(p.score)}</strong></summary><div class="detailBody"><p class="wording">${esc(info.questions.find(q=>q.id===p.id)?.question)}</p><p>${why(p)}</p>${evidence(p)}${advice(p)}${planButton(s,p)}</div></details>`).join('')}</div><p class="hint">Бали наведено зі 100. Коли доступні обидві групи, підсумковий бал є середнім їхніх двох оцінок. «Не можу оцінити» не входить у бал.</p>`;
 }
 function historyView(s){
   const h=s.history,version=h.at(-1)?.cohortVersion;
@@ -83,20 +82,21 @@ function historyView(s){
     const x=i=>18+i*524/Math.max(1,h.length-1),y=v=>124-v;
     chart=`<figure class="trend"><figcaption>Середній бал опитування <small>Шкала 0–100 · зрізи від першого до останнього</small></figcaption><svg viewBox="0 0 560 145" role="img" aria-label="Зміна середнього бала. Точні значення наведено в таблиці."><path d="M18 24H542 M18 74H542 M18 124H542" fill="none" stroke="#c3d5c6"/><polyline points="${series.map(([i,v])=>x(i)+','+y(v)).join(' ')}" fill="none" stroke="#27704f" stroke-width="3"/>${series.map(([i,v])=>`<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="#21513a"/>`).join('')}</svg></figure>`;
   }
-  return heading('Динаміка оцінювання','Зріз створюється, коли відкривається чергова порція групових відповідей. Зберігаються останні 24 зрізи. Зрізи попередньої версії охоплювали ширшу категорію «Працівники».')+
+  return heading('Динаміка оцінювання','Зріз створюється, коли відкривається чергова порція групових відповідей. Зберігаються останні 24 зрізи. ')+
     (!h.length?empty('Перший зріз ще формується',`Він з’явиться після ${s.minimum} змістовних відповідей однієї групи на те саме запитання.`):
     `<section class="card">${chart||'<p class="hint">Графік з’явиться після двох зрізів із середнім балом.</p>'}<div class="scroll"><table><caption>Зрізи від найновішого</caption><thead><tr><th>Дата (UTC)</th><th>Анкет</th>${s.components.map(c=>`<th>${esc(c.label)}</th>`).join('')}<th>Середній бал</th></tr></thead><tbody>${[...h].reverse().map(r=>`<tr><td>${date(r.at)}${r.cohortVersion===2?'':' · архів'}</td><td>${r.total}</td>${[...r.components,r.index].map(n=>`<td>${number(n)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`);
 }
 function planView(s){
   const rows=s.proposals.filter(p=>p.plan).sort((a,b)=>a.plan.due.localeCompare(b.plan.due));
-  return heading('План заходів','Відстежуйте відповідального, строк і результат перевірки для кожного прийнятого рішення.')+
+  return heading('План заходів','Створюйте управлінські заходи, призначайте відповідальних і контролюйте результат.')+
+    '<div class="tools planTools"><button class="btn dark" type="button" data-plan-new>+ Додати новий захід</button></div>'+
     (rows.length?rows.map(row=>{
       const p=s.practices.find(p=>p.id===row.id),plan=row.plan;
       const change=plan.cohortVersion===2&&plan.baseline!=null&&p.score!=null&&count(p)>plan.evidenceCount
         ?`Бал під час прийняття · ${number(plan.baseline)}. Поточний бал · ${number(p.score)}. Зміна · ${delta(p.score,plan.baseline)} б.`
         :plan.baseline!=null?'Бал під час прийняття · '+number(plan.baseline)+'. Очікуємо наступних групових даних.':'Початковий бал не зафіксовано.';
       return `<article class="card"><div class="planRow"><div><span class="overline">До ${date(plan.due)}</span><h3>${esc(p.title)}</h3><p>${esc(plan.owner)}</p></div><label>Статус заходу<select data-status="${esc(p.id)}">${Object.entries(stages).map(([k,v])=>`<option value="${k}" ${k===(plan.status||'planned')?'selected':''}>${v}</option>`).join('')}</select></label></div><p>${esc(plan.action||p.action)}</p><dl class="advice"><dt>Ознака виконання</dt><dd>${esc(plan.verify||p.verify)}</dd></dl><p class="hint">${change}</p></article>`;
-    }).join(''):empty('План поки порожній','У розділі «Пріоритети» виберіть захід, вкажіть відповідального і строк.'))+(!rows.length?'<p class="tools"><a href="#priorities">Переглянути пріоритети</a></p>':'');
+    }).join(''):empty('План поки порожній','Натисніть «Додати новий захід», оберіть практику, відповідального та строк.'));
 }
 function report(s){
   const rows=priorities(s),plans=s.proposals.filter(p=>p.plan);
