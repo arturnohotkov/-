@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Воробці · Конкурсна презентація</title>
-<meta name="description" content="Інтерактивна відеопрезентація Integrity Management Dashboard з українським озвученням">
+<title>Воробці · Оновлене відео з українським озвученням</title>
+<meta name="description" content="Оновлена українська відеопрезентація Integrity Management Dashboard із природною озвучкою та інтерактивними сценами">
 <style>
 :root{color-scheme:dark;font-family:Inter,system-ui,"Segoe UI",Arial,sans-serif;background:#071411;color:#f5f8eb}*{box-sizing:border-box}
 body{margin:0;background:radial-gradient(circle at 85% 20%,#183e32 0%,transparent 40%),#071411;overflow-x:hidden}
@@ -36,11 +36,26 @@ h1 em{font-style:normal;color:#c4f783}.lead{font-size:clamp(1rem,1.4vw,1.3rem);c
 .foot a{font-size:.88rem;text-underline-offset:4px}.message{color:#d5e6b7;font-size:.8rem;max-width:540px}
 @media(max-width:780px){.panel{grid-template-columns:1fr;gap:12px}.stage{padding-top:38px;min-height:850px;align-items:start}.visual{min-height:250px}.mock{transform:none;max-width:390px}.controls{padding-bottom:13px}.counter{margin-left:0}.matrix div{padding:14px 5px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* New primary experience is the same professionally voiced MP4 used before the survey. */
+.featuredMovie{width:min(1240px,94%);margin:18px auto 25px;padding:clamp(20px,3vw,42px);border:1px solid #6c966e;border-radius:24px;background:linear-gradient(120deg,#123729,#071f18 75%);box-shadow:0 22px 80px #0006}
+.featuredMovie .eyebrow{margin-bottom:11px}
+.featuredMovie h1{font-size:clamp(2rem,4.4vw,4rem);margin-bottom:15px}
+.featuredMovie .lead{max-width:85ch;margin:0 0 22px;font-size:1rem}
+.featuredMovie video{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#04180f;border:1px solid #4d8460;border-radius:18px;box-shadow:0 14px 40px #0008}
+.featuredButtons{display:flex;flex-wrap:wrap;align-items:center;gap:15px;margin-top:20px}
+.featuredButtons a{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:30px;text-decoration:none;background:#c7f58a;color:#153524;font-weight:800}
+.featuredButtons a:nth-child(2){background:#203e2b;color:#eaf4e3;border:1px solid #628d64}
+.featuredMovie .aside{margin-top:12px;color:#bed4bf;font-size:.88rem}
+.archive{width:min(1240px,94%);margin:15px auto 35px;border:1px solid #4f765c;border-radius:20px;overflow:hidden}
+.archive>summary{cursor:pointer;padding:20px 26px;background:#17392a;font-size:1.05rem;font-weight:700;color:#e5f7d5}
+.archive .stage{min-height:min(76vh,850px)}
+
 </style></head><body>
 <header class="top"><div class="brand">ВОРОБЦІ<i>.</i> <span class="minor">Integrity management</span></div><a class="back" href="./">← Повернутися до сайту</a></header>
-<main><section class="stage" aria-live="polite"><div class="panel" id="scene"></div><div class="controls"><div class="bar"><span id="progress"></span></div><div class="controlsRow"><button class="control main" id="play">▶ Розпочати презентацію</button><button class="control" id="prev" title="Попередня сцена">←</button><button class="control" id="next" title="Наступна сцена">→</button><button class="control" id="mute" aria-pressed="false">🔊 Озвучення: увімкнено</button><span class="counter" id="count"></span></div></div></section>
+<main><section class="featuredMovie" aria-label="Озвучене конкурсне відео"><div class="eyebrow">Конкурсне завдання № 3 · ВІКНУ · Команда «Воробці»</div><h1>Від оцінювання <em>до рішення керівника.</em></h1><p class="lead">Оновлена конкурсна відеопрезентація: дві групи учасників, 12 запитань, 3 ситуації, порівняння результатів і конкретний план дій. Український нейромережевий голос вбудовано у звукову доріжку відео, тому він не залежить від голосу браузера.</p><video controls playsinline preload="metadata" poster="./vorobtsi-intro-poster.jpg" aria-label="Оновлена конкурсна презентація Воробці з українським голосом"><source src="./vorobtsi-intro.mp4" type="video/mp4">Ваш браузер не підтримує відео. Використайте покадрову версію нижче.</video><div class="featuredButtons"><a href="./survey/">Перейти до анкети</a><a href="./vorobtsi-intro.mp4" download="vorobtsi-intro.mp4">Завантажити MP4</a></div><p class="aside">Натисніть відтворення, щоб почути українське озвучення. Усі зображення у відео — пояснювальні, а не скриншоти з персональними даними.</p></section><details class="archive"><summary>Покадрова інтерактивна презентація та текст диктора</summary><section class="stage" aria-live="polite"><div class="panel" id="scene"></div><div class="controls"><div class="bar"><span id="progress"></span></div><div class="controlsRow"><button class="control main" id="play">▶ Розпочати презентацію</button><button class="control" id="prev" title="Попередня сцена">←</button><button class="control" id="next" title="Наступна сцена">→</button><button class="control" id="mute" aria-pressed="false">🔊 Озвучення: увімкнено</button><span class="counter" id="count"></span></div></div></section>
 <div class="caption"><b id="captionName"></b><span id="captionText"></span></div>
-<footer class="foot"><span class="message" id="voiceStatus">Натисніть «Розпочати». Презентація використовує український голос, якщо він встановлений у браузері.</span><a href="./demo.mp4" download="vorobtsi-demo.mp4">Завантажити попередню MP4-демонстрацію</a></footer></main>
+<footer class="foot"><span class="message" id="voiceStatus">Інтерактивна версія дозволяє переглядати сцени вручну; основне відео вище має записаний український голос.</span><a href="./vorobtsi-intro.mp4" download="vorobtsi-intro.mp4">Завантажити відео з озвученням</a></footer></details></main>
 <script>
 const scenes=[
 {tag:'Конкурсне завдання № 3',title:'Доброчесність стає <em>вимірюваною.</em>',desc:'Воробці · ВІКНУ · Цифрова система оцінювання та підтримки управлінських рішень.',type:'index',index:'03',narr:'Доброчесність має бути не лише принципом, а й вимірюваним результатом. Команда Воробці представляє цифрову систему, що допомагає перетворити оцінювання на рішення керівника.',seconds:17},
@@ -54,7 +69,7 @@ const scenes=[
 {tag:'Команда «Воробці» · ВІКНУ',title:'Від оцінювання <em>до довіри.</em>',desc:'Integrity Management Dashboard. Цифровий інструмент, що допомагає діяти на основі доказів.',type:'index',index:'✓',narr:'Воробці — це більше ніж опитувальник. Це інструмент, який перетворює голос людей та аналітичні показники на конкретні управлінські рішення. Доброчесність починається з дії.',seconds:17}
 ];
 const $=id=>document.getElementById(id);
-let index=0,playing=false,muted=false,deadline=0,elapsed=0,frame=0,currentVoice=null;
+let index=0,playing=false,muted=true,deadline=0,elapsed=0,frame=0,currentVoice=null;
 const synth=window.speechSynthesis;
 const escapeHTML=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const total=scenes.reduce((n,s)=>n+s.seconds,0);
