@@ -11,7 +11,12 @@ const backend=document.querySelector('meta[name="vektor-api"]')?.content||'';
 const link=path=>base+path+(base&&path!=='/'?'/':'');
 let managerToken='',ballotToken='';
 const ballotKey='vektor-ballot:'+base+':'+backend;
-const planKey='vektor-manager-actions-v1:'+base+':'+backend;
+// Preserve browser measures saved against the original server when switching the API later.
+const originalBackend='https://vektor-integrity-lab.clayblade5.chatgpt.site';
+const originalPlanKey='vektor-manager-actions-v1:'+base+':'+originalBackend;
+const newPlanKey='vektor-manager-actions-v1:'+base+':'+backend;
+let planKey=newPlanKey;
+try{if(backend!==originalBackend&&localStorage.getItem(originalPlanKey))planKey=originalPlanKey}catch{}
 if(backend){try{ballotToken=localStorage.getItem(ballotKey)||''}catch{}}
 const route=url.pathname.slice(base.length).replace(/\/index\.html$/,'').replace(/\/$/,'');
 let info,step=0,reviewBack=0,selectedProposal='',variant='auto',answers=[],group='',sending=false,shared=false,lastDashboard='',lastState=null,rawManagerState=null,refreshing=false,started=false,syncingPlans=false,lastSyncCheck=0;
