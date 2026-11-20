@@ -90,7 +90,8 @@ function planView(s){
   const rows=s.proposals.filter(p=>p.plan).sort((a,b)=>a.plan.due.localeCompare(b.plan.due));
   return heading('План заходів','Створюйте управлінські заходи, призначайте відповідальних і контролюйте результат.')+
     '<div class="tools planTools"><button class="btn dark" type="button" data-plan-new>+ Додати новий захід</button></div>'+
-    (s.localPlanCount?'<p class="hint localInfo">Локальні заходи: '+s.localPlanCount+'. Вони залишаються в цьому браузері, але поки не синхронізуються з іншими пристроями.</p>':'')+
+    (s.pendingLocalCount?'<div class="localInfo"><p><b>Очікують на синхронізацію: '+s.pendingLocalCount+'.</b> '+(s.serverManualMeasures?'Спільний сервер доступний для перенесення.':'Поточна версія спільного сервера ще не підтримує збереження власних заходів. До його оновлення записи зберігаються лише у цьому браузері.')+'</p><button type="button" class="btn" data-action="sync-plans">'+(s.serverManualMeasures?'Синхронізувати зараз':'Перевірити можливість синхронізації')+'</button></div>':(s.serverManualMeasures?'<p class="hint syncReady">Заходи зберігаються на спільному сервері та доступні після входу з інших пристроїв.</p>':''))+ 
+    ((s.localConflicts||[]).length?'<div class="localConflict"><h3>Потрібна перевірка розбіжностей</h3><p>На сервері вже є захід для тієї самої практики. Локальну версію збережено, але вона не замінює спільну автоматично.</p>'+(s.localConflicts||[]).map(r=>'<details><summary>'+esc(r.title)+'</summary><p><b>Локальний захід:</b> '+esc(r.local.action)+'</p><p><b>Ознака виконання:</b> '+esc(r.local.verify)+'</p><p>Відповідальний: '+esc(r.local.owner)+' · Строк: '+date(r.local.due)+'</p></details>').join('')+'</div>':'')+
     (rows.length?rows.map(row=>{
       const p=s.practices.find(p=>p.id===row.id),plan=row.plan;
       const change=plan.cohortVersion===2&&plan.baseline!=null&&p.score!=null&&count(p)>plan.evidenceCount
