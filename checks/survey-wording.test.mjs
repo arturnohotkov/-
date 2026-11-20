@@ -40,5 +40,5 @@ test('Only public live survey bundles the new wording; offline demo remains inde
   const demoBuild=readFileSync(new URL('../offline/build-html.mjs',import.meta.url),'utf8');
   assert.doesNotMatch(demoBuild,/survey-wording\.mjs/);
   const liveShell=readFileSync(new URL('../core/live-shell.mjs',import.meta.url),'utf8');
-  assert.match(liveShell,/\/live\.js\?v=20/);
+  assert.match(liveShell,/\/live\.js\?v=21/);
 });
