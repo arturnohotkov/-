@@ -28,7 +28,7 @@ test('Live survey presents role-specific choices while keeping the same 0–4 sc
   const source=readFileSync(new URL('../public/live.js',import.meta.url),'utf8');
   assert.match(source,/optionsFor\(q,group\)/);
   assert.match(source,/optionsFor\(lowest\.item,group\)\[lowest\.score\]/);
-  assert.match(source,/value="${i}"/);
+  assert.ok(source.includes('value="${i}"'),'Radio answers preserve numeric 0–4 values');
   assert.match(source,/Не можу оцінити \/ бракує інформації/);
   assert.match(source,/answers\.map\(v=>v===5\?null:v\)/);
   assert.match(source,/survey-wording\.mjs\?v=1/);
