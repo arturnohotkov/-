@@ -26,9 +26,26 @@ export async function synchronizeManagerPlans({api,storage,key,initialState}){
   for(const [id,draft] of Object.entries(local)){
     const target=remote.proposals?.find(p=>p.id===id)?.plan;
     if(target){
-      if(!sameDetails(target,draft)||!sameStatus(target,draft)){
-        result.conflicts.push({id,reason:'На сервері вже є інший зміст, строк або статус цього заходу.'});
+      if(!sameDetails(target,draft)){
+        result.conflicts.push({id,reason:'На сервері вже є захід з іншим змістом, строком або відповідальним.'});
         continue;
+      }
+      if(!sameStatus(target,draft)){
+        // Resume a partially completed first upload: a newly created remote plan starts as 'planned'.
+        // Do not overwrite an already progressed remote status from another device.
+        if((target.status||'planned')!=='planned'||draft.status==='planned'){
+          result.conflicts.push({id,reason:'Локальний та спільний статуси різняться. Перевірте обидві версії.'});
+          continue;
+        }
+        try{
+          await api('status',{id,status:draft.status});
+          remote=await api('state');
+          const updated=remote.proposals?.find(p=>p.id===id)?.plan;
+          if(!updated||!sameDetails(updated,draft)||!sameStatus(updated,draft)){
+            result.conflicts.push({id,reason:'Не вдалося підтвердити перенесення статусу.'});
+            continue;
+          }
+        }catch(err){result.failed.push({id,error:err?.message||'Не вдалося передати статус.'});continue}
       }
       try{
         if(eraseConfirmed(storage,key,id,draft))result.matched.push(id);
