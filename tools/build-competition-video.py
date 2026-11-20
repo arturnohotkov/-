@@ -352,6 +352,36 @@ async def make_voice(s,filename,stressify):
             await asyncio.sleep(2*(attempt+1))
     raise RuntimeError("Natural Ukrainian voice generation failed after retries: "+str(last_error))
 
+def write_captions(path, durations):
+    """Plain Ukrainian closed captions. Pauses follow the actual audio length."""
+    import textwrap
+    cues=["WEBVTT",""]
+    current=0.0
+    def stamp(seconds):
+        ms=round(seconds*1000)
+        hh,ms=divmod(ms,3600000)
+        mm,ms=divmod(ms,60000)
+        ss,ms=divmod(ms,1000)
+        return f"{hh:02}:{mm:02}:{ss:02}.{ms:03}"
+    for scene,duration in zip(SCENES,durations):
+        blocks=textwrap.wrap(scene["narr"],width=77,break_long_words=False,
+                             break_on_hyphens=False)
+        # 2 caption lines per cue. Segments are distributed over the real voice
+        # duration, excluding the end pause of 1.25s.
+        groups=["\n".join(blocks[i:i+2]) for i in range(0,len(blocks),2)]
+        voiced=max(2.0,duration-1.25)
+        weights=[max(1,len(g)) for g in groups]
+        total=sum(weights)
+        t=current
+        for text,weight in zip(groups,weights):
+            end=min(current+voiced,t+voiced*(weight/total))
+            cues.append(f"{stamp(t)} --> {stamp(end)}")
+            cues.append(text)
+            cues.append("")
+            t=end
+        current+=duration
+    path.write_text("\n".join(cues),encoding="utf8")
+
 async def main():
     # The lightweight dictionary avoids a 500 MB NLP-model download on each
     # GitHub Actions run, while covering all unambiguous word forms.
@@ -407,6 +437,7 @@ async def main():
     run(["ffmpeg","-hide_banner","-loglevel","error","-y","-f","concat","-safe","0","-i",str(manifest),"-c","copy","-movflags","+faststart",str(out)])
     poster=OUTPUT/"vorobtsi-intro-poster.jpg"
     Image.open(WORK/"slide-00.png").save(poster,quality=87,optimize=True)
+    write_captions(OUTPUT/"vorobtsi-intro.uk.vtt",durations)
     if out.stat().st_size<100000 or out.stat().st_size>90000000:raise RuntimeError("Invalid final video size")
     seconds=ffprobe(out)
     if seconds<100 or seconds>230:raise RuntimeError(f"Unexpected video length: {seconds:.1f}s")
