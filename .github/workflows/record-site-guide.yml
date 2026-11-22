@@ -48,3 +48,5 @@ jobs:
             presentation/result/TITLES.srt
             presentation/result/example-export.csv
           retention-days: 7
+
+# Rerun with correct bundled full-index scene.
