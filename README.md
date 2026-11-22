@@ -3,7 +3,7 @@
 **Команда «Воробці» · ВІКНУ · Завдання № 3 — Integrity Management Dashboard**  
 IV Building Integrity Hackathon · 2026
 
-**[Відкрити платформу](https://arturnohotkov.github.io/-/)** · **[Пройти анкету](https://arturnohotkov.github.io/-/survey/)** · **[Кабінет керівника](https://arturnohotkov.github.io/-/manager/)** · [Ознайомлювальне відео](https://arturnohotkov.github.io/-/vorobtsi-intro.mp4?v=4)
+**[Відеодемонстрація на YouTube](https://www.youtube.com/watch?v=Oq7ejboepmU)** · **[Відкрити платформу](https://arturnohotkov.github.io/-/)** · **[Пройти анкету](https://arturnohotkov.github.io/-/survey/)** · **[Кабінет керівника](https://arturnohotkov.github.io/-/manager/)**
 
 ![Приклад аналітичної панелі на умовних даних](docs/overview.jpg)
 
@@ -45,7 +45,9 @@ IV Building Integrity Hackathon · 2026
 
 **Саме цей зв’язок між відповіддю, аналітикою та конкретним управлінським заходом — головна ідея нашого рішення.**
 
-## Перевірити платформу
+## Демонстрація
+
+**[Переглянути конкурсну демонстрацію на YouTube](https://www.youtube.com/watch?v=Oq7ejboepmU)**
 
 **Основний сайт:** [«Воробці» — Вектор доброчесності](https://arturnohotkov.github.io/-/). На головній сторінці й перед анкетою є [ознайомлювальне відео](https://arturnohotkov.github.io/-/vorobtsi-intro.mp4?v=4) українською мовою (приблизно **2 хв 43 с**). Воно коротко знайомить із платформою; перегляд можна пропустити.
 
