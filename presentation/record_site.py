@@ -276,14 +276,14 @@ async def shoot():
         await title(page,'Звіт і експорт','Завантажено справжню таблицю результатів',3)
         # 4. The actual auxiliary page is shown ONLY to explain the full weighted index.
         await transition(page)
-        await goto(page,'/demo')
+        await goto(page,'/vektor.html')
         await title(page,'Повний Integrity Index','Додатковий розрахунок з опитування, експертної та документальної оцінок',5)
         for fragment,heading,desc,duration in [
             ('method','Формула 40 / 30 / 30','C = 0,40 × S + 0,30 × E + 0,30 × D',7),
             ('chart','Підсумковий розрахунок','Integrity Index = (Культура + Система + Підзвітність) / 3',7),
             ('cycles','Підсумковий розрахунок','Приклад навчального циклу: індекс 76,2 / 100',6)]:
             try:
-                await page.goto(HOST+'/demo/#'+fragment,wait_until='domcontentloaded',timeout=12000)
+                await page.goto(HOST+'/vektor.html#'+fragment,wait_until='domcontentloaded',timeout=12000)
                 await asyncio.sleep(.65);await visuals(page)
                 await title(page,heading,desc,duration)
                 await page.evaluate('window.scrollTo({top:Math.min(document.body.scrollHeight-900,550),behavior:"smooth"})')
