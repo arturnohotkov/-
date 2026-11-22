@@ -1,0 +1,50 @@
+name: Render actual VOROBTSI site walkthrough (isolated branch)
+on:
+  push:
+    branches:
+      - video-only-showcase-2026-11-22
+    paths:
+      - .github/workflows/record-site-guide.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  render:
+    name: Record live UI, questionnaire, manager and calculations
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout original project and recording script
+        uses: actions/checkout@v4
+      - name: Node 22 with built-in SQLite
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: FFmpeg and Chromium libraries
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python -m pip install -q 'playwright>=1.54,<1.63'
+          python -m playwright install chromium --with-deps
+      - name: Use real application code and isolated synthetic survey
+        run: python presentation/record_site.py
+      - name: Ensure actual video and voice script are generated
+        run: |
+          test -s presentation/result/VOROBTSI_working_site_silent.mp4
+          test -s presentation/result/TEXT_FOR_VOICE.txt
+          test -s presentation/result/TITLES.srt
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 presentation/result/VOROBTSI_working_site_silent.mp4 | grep -q h264
+      - name: Download-ready video and narration bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: VOROBTSI_real_site_video
+          path: |
+            presentation/result/VOROBTSI_working_site_silent.mp4
+            presentation/result/TEXT_FOR_VOICE.txt
+            presentation/result/TITLES.srt
+            presentation/result/example-export.csv
+          retention-days: 7
